@@ -1,0 +1,381 @@
+{
+  "slug": "escada",
+  "num": 8,
+  "menu": "Escalera",
+  "titulo": "La escalera de despliegue: sim → sim2sim → suspenso → chão",
+  "titulo_curto": "La escalera hasta el suelo",
+  "minutos": 13,
+  "lead": "Todo lo de este curso se convierte en un plan: cuatro niveles, cada uno con lo que corre, el criterio para subir y el motivo para parar y volver. En esta clase escribes tu escalera en un archivo YAML, la verificas con un script y simulas la cola de niveles con una falla en el medio. El procedimiento de seguridad con el robot encendido es del curso 4.",
+  "objetivo": "escribir la escalera sim → sim2sim → suspenso → chão con criterio de paso y de parada en cada nivel y verificarla por script.",
+  "competencias": [
+    "planejar-escada-de-implantacao",
+    "escrever-criterio-verificavel",
+    "voltar-um-degrau"
+  ],
+  "aprende": [
+    {
+      "icone": "camadas",
+      "t": "Los cuatro niveles y lo que cada clase de este curso les entrega"
+    },
+    {
+      "icone": "check",
+      "t": "Criterio de paso en el formato comando → salida esperada"
+    },
+    {
+      "icone": "fila",
+      "t": "La cola de niveles: si falla, vuelve un nivel"
+    },
+    {
+      "icone": "calendario",
+      "t": "Tu plan con fechas"
+    }
+  ],
+  "hero_alt": "Área de pruebas de un laboratorio con un robot humanoide sujeto a un pórtico, piso demarcado con cinta amarilla y un botón rojo de parada en primer plano.",
+  "secoes": [
+    {
+      "tipo": "diagrama",
+      "titulo": "Los cuatro niveles",
+      "sub": "Haz clic en cada nivel. Solo se sube cuando el criterio es verdadero.",
+      "estilo": "escada",
+      "nos": [
+        {
+          "icone": "camadas",
+          "titulo": "Sim",
+          "sub": "aleatorizado",
+          "detalhe": "La política en el simulador del entrenamiento y en MuJoCo, con los rangos de aleatorización del entrenamiento y un poco más allá (clase 2). Criterio del kit: sobreviveu 20/20 dentro da faixa.",
+          "itens": [
+            {
+              "icone": "lista",
+              "t": "clases 1 y 2"
+            }
+          ]
+        },
+        {
+          "icone": "portao",
+          "titulo": "Sim2sim",
+          "sub": "compuerta (gate)",
+          "detalhe": "Otro modelo del robot y el camino DDS de mensajes del fabricante (clase 6). Criterio: PORTÃO: passou (3 de 3 etapas).",
+          "itens": [
+            {
+              "icone": "lista",
+              "t": "clase 6"
+            }
+          ]
+        },
+        {
+          "icone": "robo",
+          "titulo": "Suspendido",
+          "sub": "pórtico",
+          "forte": true,
+          "detalhe": "El robot real colgado, con los pies en el aire o apenas tocando el suelo, con elástico o cable. Aquí se hace el ensayo de banco, el sysid y la medición de retardo (clases 3 a 5); la política mueve las piernas sin carga. El flujo de despliegue de unitree_rl_lab usa suspensión antes de soltar el robot.",
+          "itens": [
+            {
+              "icone": "lista",
+              "t": "clases 3, 4 y 5"
+            }
+          ]
+        },
+        {
+          "icone": "alvo",
+          "titulo": "Suelo",
+          "sub": "área aislada",
+          "detalhe": "Piso plano, área demarcada, cable flojo, una persona en el botón de parada. Criterio corto y repetido: quieto, luego despacio, tres veces. El procedimiento completo de seguridad es del curso 4.",
+          "itens": [
+            {
+              "icone": "lista",
+              "t": "curso 4"
+            }
+          ]
+        }
+      ],
+      "legenda": "Si falla en un nivel, vuelve al anterior con lo que aprendió: nuevo parámetro identificado, nuevo rango de aleatorización, nuevo criterio."
+    },
+    {
+      "tipo": "simfila",
+      "titulo": "La cola de niveles",
+      "sub": "Ejecútalo, mira cómo falla un nivel y ejecútalo de nuevo. Es el ciclo de la escalera.",
+      "tarefas": [
+        "Sim: 20/20 dentro del rango del entrenamiento",
+        "Sim2sim: compuerta (gate) con DDS",
+        "Suspendido: sysid y retardo medidos",
+        "Suelo: 3 veces sin caída"
+      ],
+      "falha": 2,
+      "rot": {
+        "entrada": "subiendo",
+        "rodando": "en el nivel",
+        "feito": "pasó",
+        "falhou": "volvió",
+        "rodar": "Subir la escalera",
+        "parar": "Parar (botón de emergencia)",
+        "zerar": "Reiniciar"
+      },
+      "msg": {
+        "inicio": "4 niveles por subir. Haz clic en \"Subir la escalera\".",
+        "rodando": "Un nivel a la vez: solo sube cuando el criterio del nivel actual se cumple.",
+        "parou": "Detenido a mitad del nivel. Ejecútalo de nuevo: el nivel empieza desde cero, los anteriores siguen valiendo.",
+        "retoma": "Reanudación: el nivel interrumpido vuelve a empezar. Lo que ya pasó no se repite.",
+        "fim": "Escalera completa: la política camina en el suelo.",
+        "fimfalha": "Un nivel volvió con el motivo anotado (p. ej.: retardo mayor que el simulado). Corrígelo en el simulador y sube de nuevo."
+      },
+      "legenda": "Simulación ilustrativa en el navegador. La falla en el nivel \"Suspendido\" es intencional, para mostrar el retorno."
+    },
+    {
+      "tipo": "codigo",
+      "titulo": "Tu escalera en YAML",
+      "sub": "Copia el modelo a ~/fth/escada.yaml y cámbialo por tu robot y tus criterios. El conferir_escada.py exige los 4 niveles en orden, con onde, criterio (comando → salida) y cuándo parar.",
+      "blocos": [
+        {
+          "rot": "Archivo · kit/escada-modelo.yaml",
+          "icone": "arquivo",
+          "conteudo": "# escada.yaml — la escalera de despliegue de tu política (FTH 2, clase 8)\n# Cada nivel: qué se ejecuta, el criterio para subir (comando → salida esperada) y cuándo parar y volver.\npolitica: unitree_rl_lab G1 29 GDL velocity v0 (ONNX)\nrobo: Unitree G1 EDU (29 GDL)\ndegraus:\n  - nome: sim\n    onde: MuJoCo 3.16 + G1 do Menagerie, com as faixas de randomização do treino\n    criterio: \"python3 kit/randomizar.py --seeds 20 --faixa treino → sobreviveu: 20/20\"\n    parar_se: qualquer queda dentro da faixa do treino\n  - nome: sim2sim\n    onde: outro MJCF (unitree_mujoco) e o caminho de mensagens do robô (DDS, rt/lowcmd e rt/lowstate)\n    criterio: \"python3 kit/portao_sim2sim.py --passo 0.001 --dds → PORTÃO: passou (3 de 3 etapas)\"\n    parar_se: queda, velocidade fora de ±0,15 m/s, pernas no limite de torque ou política abaixo de 45 Hz\n  - nome: suspenso\n    onde: robô no pórtico, pés fora do chão, elástico ou cabo de segurança\n    criterio: \"ensaio de bancada + sysid → kp identificado e atraso medido; a política mexe as pernas sem bater no limite\"\n    parar_se: junta batendo no limite, vibração, temperatura subindo, atraso maior que o simulado\n  - nome: chao\n    onde: piso plano, área isolada, cabo frouxo no pórtico, pessoa no botão de parada\n    criterio: \"teste no chão → 10 s parado + 10 s a 0,3 m/s sem queda, três vezes seguidas\"\n    parar_se: tropeço, queda, qualquer pessoa dentro da área"
+        },
+        {
+          "rot": "Terminal · verificar la escalera",
+          "icone": "terminal",
+          "conteudo": "F=${FTH:-$HOME/fth}; cd $F/sim2real && . $F/.venv/bin/activate\n[ -f $F/escada.yaml ] || cp kit/escada-modelo.yaml $F/escada.yaml\npython3 kit/conferir_escada.py $F/escada.yaml; echo \"saída: $?\""
+        },
+        {
+          "rot": "Terminal · escalera sin criterio de parada (error común)",
+          "icone": "terminal",
+          "conteudo": "F=${FTH:-$HOME/fth}; cd $F/sim2real && . $F/.venv/bin/activate\ngrep -v \"parar_se: tropeço\" kit/escada-modelo.yaml > $F/escada-incompleta.yaml\npython3 kit/conferir_escada.py $F/escada-incompleta.yaml; echo \"saída: $?\""
+        }
+      ],
+      "saida": {
+        "selo": "real",
+        "abas": [
+          {
+            "rot": "Salida capturada (19/10/2026)",
+            "html": "<pre>4 degraus, 4 critérios · escada ok\nsaída: 0</pre><p>Cuatro niveles, cuatro criterios, salida 0.</p>"
+          },
+          {
+            "rot": "Error común: sin \"parar_se\"",
+            "html": "<pre>ERRO: degrau 'chão' sem parar_se\n4 degraus, 4 critérios · 1 problema(s)\nsaída: 1</pre><p>Un nivel sin condición de parada es el error más caro: en el piso, es lo que te dice cuándo apretar el botón. El script lo reprueba.</p>"
+          }
+        ]
+      }
+    },
+    {
+      "tipo": "pratica",
+      "titulo": "Práctica",
+      "sub": "El plan hasta el piso, verificable.",
+      "exercicios": [
+        {
+          "id": "e1",
+          "titulo": "E1 · Escalera revisada",
+          "min": "15 min",
+          "texto": "Copia el modelo, cambia robot, policy y criterios por los tuyos (usa las salidas que tú mismo capturaste en las clases 2, 3 y 6) y revísala.",
+          "pronto": "<code>python3 kit/conferir_escada.py ~/fth/escada.yaml; echo \"saída: $?\"</code> → <code>4 degraus, 4 critérios · escada ok</code> y <code>saída: 0</code>."
+        },
+        {
+          "id": "e2",
+          "titulo": "E2 · El motivo para volver",
+          "min": "5 min",
+          "texto": "Para cada nivel, escribe en el YAML un motivo de parada que sepas medir (con el comando o el instrumento).",
+          "pronto": "los 4 campos <code>parar_se</code> citan algo medible (caída, ms, %, N·m, temperatura)."
+        },
+        {
+          "id": "e3",
+          "titulo": "E3 · Plan con fechas",
+          "min": "5 min",
+          "texto": "Genera tu plan de estudio con el generador de abajo y márcalo en el calendario.",
+          "pronto": "el <code>plano.md</code> descargado lista las 8 clases con la práctica y el \"listo cuando\" de cada una."
+        }
+      ]
+    },
+    {
+      "tipo": "mapa",
+      "titulo": "Lo que armaste en este curso",
+      "sub": "Cuatro entregas principales. Haz clic en un nivel para ver el \"listo cuando\".",
+      "degraus": [
+        {
+          "aula": "gap",
+          "icone": "grafico",
+          "quando": "Clases 1–2",
+          "titulo": "Gap",
+          "sub": "medido",
+          "saida": "Caída en 2,3 s; 20/20 × 8/20.",
+          "passo": "El gap de una policy lista, medido, y la cobertura de la domain randomization del entrenamiento comparada con el mundo de afuera."
+        },
+        {
+          "aula": "sysid",
+          "icone": "chip",
+          "quando": "Clases 3–4",
+          "titulo": "Actuador",
+          "sub": "kp, retardo",
+          "saida": "kp a ±10 %; retardo de 22 ms.",
+          "passo": "El actuador del \"robot real\" identificado en el pórtico y el retardo medido por nivel, con la compensación que hace caminar al \"real\"."
+        },
+        {
+          "aula": "sim2sim",
+          "icone": "portao",
+          "quando": "Clases 5–6",
+          "titulo": "Compuerta (gate)",
+          "sub": "delta, DDS",
+          "saida": "Error sim × real en caída; compuerta (gate) 3 de 3.",
+          "passo": "El simulador corregido con datos y la policy pasando por otro modelo y por el DDS del fabricante."
+        },
+        {
+          "aula": "escada",
+          "icone": "camadas",
+          "quando": "Clases 7–8",
+          "titulo": "Escalera",
+          "sub": "hasta el piso",
+          "saida": "escada.yaml con 4 criterios.",
+          "passo": "El gemelo digital y la prueba en la física, y la escalera con criterio para subir y para detenerse en cada nivel."
+        }
+      ],
+      "resultado": {
+        "titulo": "Al final del curso",
+        "texto": "Gap medido, actuador identificado, compuerta (gate) superada y escalera escrita.",
+        "total": "8 clases"
+      },
+      "rolagem_fim": {
+        "titulo": "El curso completo",
+        "texto": "Cuatro entregas en secuencia. La escalera es lo que el curso 4 (operar) aplica al robot de verdad."
+      },
+      "legenda": "El orden importa: el criterio de cada nivel usa la salida de una clase anterior."
+    },
+    {
+      "tipo": "gerador",
+      "titulo": "Genera tu plan con fechas",
+      "sub": "Elige la fecha de inicio y cuánto tiempo tienes por semana. El plan lista las prácticas de cada clase.",
+      "curso": "FTH 2 · Del simulador al suelo",
+      "horas_padrao": 3,
+      "degraus": [
+        {
+          "titulo": "Clase 1 · El gap medido",
+          "aula": "gap"
+        },
+        {
+          "titulo": "Clase 2 · Domain randomization",
+          "aula": "randomizacao"
+        },
+        {
+          "titulo": "Clase 3 · Identificación de sistemas",
+          "aula": "sysid"
+        },
+        {
+          "titulo": "Clase 4 · Retardo y límite del actuador",
+          "aula": "atuador"
+        },
+        {
+          "titulo": "Clase 5 · Delta action",
+          "aula": "corrigir"
+        },
+        {
+          "titulo": "Clase 6 · La compuerta (gate) sim2sim",
+          "aula": "sim2sim"
+        },
+        {
+          "titulo": "Clase 7 · Real-to-sim",
+          "aula": "real2sim"
+        },
+        {
+          "titulo": "Clase 8 · La escalera hasta el piso",
+          "aula": "escada"
+        }
+      ],
+      "txt": {
+        "titulo": "Plan — FTH 2 · Del simulador al piso",
+        "inicio": "Inicio",
+        "ritmo": "Ritmo",
+        "termino": "Fin previsto",
+        "ate": "hasta",
+        "pronto": "listo cuando",
+        "semanas": "semanas",
+        "travou": "## Qué se trabó y la regla que creé",
+        "h": "h por semana",
+        "exs": "ejercicios"
+      }
+    },
+    {
+      "tipo": "quiz",
+      "titulo": "Prueba de la clase",
+      "sub": "La explicación aparece después de tu respuesta.",
+      "perguntas": [
+        {
+          "p": "¿En qué nivel se hacen el ensayo de banco, el sysid y la medición de retardo (latencia) en el robot real?",
+          "opcoes": [
+            "Sí, porque todo es simulado.",
+            "Sim2sim, junto con el DDS.",
+            "Piso, con el robot caminando.",
+            "Suspendido, con el robot en el pórtico."
+          ],
+          "certa": 3,
+          "explica": "Colgado, el robot mueve las piernas sin carga y sin riesgo de caída: es el nivel para medir el actuador real.",
+          "ref": "diagrama",
+          "cert": true
+        },
+        {
+          "p": "¿Qué hace que un criterio de nivel sea verificable?",
+          "opcoes": [
+            "Tener la forma comando → salida esperada.",
+            "Que lo escriba quien entrenó la policy.",
+            "Citar el nombre del robot y de la policy.",
+            "Tener más de una línea de texto."
+          ],
+          "certa": 0,
+          "explica": "Si otra persona ejecuta el mismo comando y ve la misma salida, el nivel pasó. \"Parece estable\" no es un criterio.",
+          "ref": "codigo"
+        },
+        {
+          "p": "Un nivel falló (el retardo (latencia) real es mayor que el simulado). ¿Qué indica la escalera que hagas?",
+          "opcoes": [
+            "Saltar al piso con el cable más corto.",
+            "Volver al simulador con el retardo (latencia) medido y subir de nuevo.",
+            "Subir el kp hasta que desaparezca la falla.",
+            "Repetir el mismo nivel hasta que pase por suerte."
+          ],
+          "certa": 1,
+          "explica": "La vuelta lleva la información nueva hacia abajo: el retardo (latencia) medido entra en el simulador (y en la randomización), y la policy sube de nuevo por la escalera.",
+          "ref": "simfila"
+        }
+      ]
+    },
+    {
+      "tipo": "resumo",
+      "titulo": "En tres frases",
+      "itens": [
+        {
+          "t": "Niveles",
+          "texto": "Sim, sim2sim, suspendido y piso, en ese orden."
+        },
+        {
+          "t": "Criterio",
+          "texto": "Cada nivel tiene comando → salida para subir y un motivo medible para detenerse."
+        },
+        {
+          "t": "Vuelta",
+          "texto": "Si falla, vuelve un nivel con lo que mediste; el curso 4 aplica la escalera al robot."
+        }
+      ]
+    },
+    {
+      "tipo": "links",
+      "titulo": "Para ir más allá",
+      "links": [
+        {
+          "t": "Próximo curso de la FTH: cuerpo completo (imitar, teleoperar y obedecer)",
+          "href": "https://inematds.github.io/formacao-fth-corpo-inteiro-v72/es/",
+          "icone": "robo"
+        },
+        {
+          "t": "vla-v72, clase 8: normas y el mundo real",
+          "href": "https://inematds.github.io/vla-v72/es/aulas/mundo-real/",
+          "icone": "escudo"
+        },
+        {
+          "t": "unitree_rl_lab: el flujo entrenamiento → sim2sim → robot",
+          "href": "https://github.com/unitreerobotics/unitree_rl_lab",
+          "icone": "git"
+        },
+        {
+          "t": "FTH 0: el cuerpo del humanoide (el banco ~/fth)",
+          "href": "https://inematds.github.io/formacao-fth-anatomia-v72/es/",
+          "icone": "seta"
+        }
+      ]
+    }
+  ]
+}

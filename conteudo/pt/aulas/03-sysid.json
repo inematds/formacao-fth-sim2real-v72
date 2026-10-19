@@ -224,14 +224,14 @@
           "titulo": "E2 · kp e kd identificados",
           "min": "5 min",
           "texto": "Rode a identificação e confira contra o valor escondido.",
-          "pronto": "<code>python3 kit/sysid.py ~/fth/log.npz --revelar; echo \"saída: $?\"</code> → <code>kp escondido 0.60 · dentro de ±10 %: sim</code> e <code>saída: 0</code>."
+          "pronto": "<code>python3 kit/sysid.py ~/fth/log.npz --revelar; echo \"saída: $?\"</code> → a linha do kp termina em <code>dentro de ±10 %: sim</code> (escondido 0.60) e <code>saída: 0</code>."
         },
         {
           "id": "e3",
           "titulo": "E3 · O ensaio que mente",
           "min": "10 min",
           "texto": "Rode o mesmo ensaio no mundo \"sim\" e identifique (último bloco). Depois explique em duas linhas por que só o kp, no log do \"real\", sai do ±10 %.",
-          "pronto": "o bloco do sim termina em <code>kp nominal 1.00 → identificado 1.00</code>; você escreveu que o atraso ausente no modelo foi parar no kp."
+          "pronto": "no bloco do sim, a linha do kp termina em <code>identificado   1.00</code>; você escreveu que o atraso ausente no modelo foi parar no kp."
         }
       ]
     },

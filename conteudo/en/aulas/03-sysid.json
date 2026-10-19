@@ -1,0 +1,322 @@
+{
+  "slug": "sysid",
+  "num": 3,
+  "menu": "Sysid",
+  "titulo": "System identification: measure to model",
+  "titulo_curto": "System identification",
+  "minutos": 17,
+  "lead": "Randomizing covers what you don't know; identifying shrinks what you don't know. In this lesson you hang the \"simulated real\" robot on the gantry, make the leg swing in a frequency sweep, record the encoders, and use MuJoCo's own system identification toolbox to find the kp and kd the motor really delivers.",
+  "objetivo": "identify the actuator's kp and kd in a bench test with the mujoco.sysid toolbox and check them against the hidden value.",
+  "competencias": [
+    "planejar-ensaio-de-bancada",
+    "usar-mujoco-sysid",
+    "ler-identificabilidade"
+  ],
+  "aprende": [
+    {
+      "icone": "robo",
+      "t": "The bench test: robot hanging, leg in a sweep from 0.5 to 3 Hz"
+    },
+    {
+      "icone": "chip",
+      "t": "The mujoco.sysid toolbox (MuJoCo 3.5+): Parameter, ModelSequences, optimize"
+    },
+    {
+      "icone": "grafico",
+      "t": "Model error dropping from 8.16° to under 4° in the positions"
+    },
+    {
+      "icone": "lupa",
+      "t": "Why identifying only kp goes wrong when something is missing from the model"
+    }
+  ],
+  "hero_alt": "Humanoid robot suspended by straps on a steel gantry, feet off the ground, with cables connecting the leg to measurement equipment.",
+  "secoes": [
+    {
+      "tipo": "diagrama",
+      "titulo": "From the test to the parameter",
+      "sub": "Click each block.",
+      "nos": [
+        {
+          "icone": "robo",
+          "titulo": "Gantry",
+          "sub": "feet in the air",
+          "detalhe": "Suspended robot: the leg moves with no ground contact. This way the test measures the actuator and the leg, without mixing in foot friction or balance. It is also the safe step of the ladder (lesson 8).",
+          "itens": [
+            {
+              "icone": "lista",
+              "t": "pelvis fixed, no falling"
+            }
+          ]
+        },
+        {
+          "icone": "grafico",
+          "titulo": "Sweep",
+          "sub": "0.5 → 3 Hz",
+          "detalhe": "The command rises in frequency over 4 s on four joints of the left leg. Low frequency shows the stiffness (kp); high frequency shows the damping (kd) and the latency (delay).",
+          "itens": [
+            {
+              "icone": "lista",
+              "t": "excites what you want to measure"
+            }
+          ]
+        },
+        {
+          "icone": "arquivo",
+          "titulo": "Log",
+          "sub": "log.npz",
+          "detalhe": "Command sent + measured position and velocity at 500 Hz, with 0.002 rad and 0.02 rad/s of noise, like a real encoder.",
+          "itens": [
+            {
+              "icone": "lista",
+              "t": "1,999 samples"
+            }
+          ]
+        },
+        {
+          "icone": "cerebro",
+          "titulo": "Optimizer",
+          "sub": "mujoco.sysid",
+          "forte": true,
+          "detalhe": "Simulates the same command on the nominal model, compares it with the log, and adjusts the parameters by nonlinear least squares until the curves match.",
+          "itens": [
+            {
+              "icone": "lista",
+              "t": "Parameter + ModelSequences"
+            }
+          ]
+        },
+        {
+          "icone": "check",
+          "titulo": "Parameter",
+          "sub": "kp, kd",
+          "detalhe": "The result goes into the simulator (next training run) or into the robot's command (compensation, lesson 4). Always check it with a test that was not used in the fit.",
+          "itens": [
+            {
+              "icone": "lista",
+              "t": "±10 % of the hidden value"
+            }
+          ]
+        }
+      ],
+      "legenda": "Each test identifies what it excites. A leg in the air says nothing about foot friction."
+    },
+    {
+      "tipo": "passos",
+      "titulo": "What the toolbox does for you",
+      "sub": "mujoco.sysid arrived in MuJoCo 3.5.0 (02/12/2026); here, 3.16.0 with the [sysid] extra. Tap each step.",
+      "passos": [
+        {
+          "titulo": "Parameter",
+          "sub": "what varies",
+          "texto": [
+            "Each parameter has a nominal value, a range, and a function that writes the value into the MjSpec (the editable model). In the kit: kp and kd scale the gains from deploy.yaml on the four tested joints."
+          ]
+        },
+        {
+          "titulo": "ModelSequences",
+          "sub": "model + data",
+          "texto": [
+            "Joins the spec, the initial state, the command (<code>TimeSeries.from_control_names</code>), and the measured sensors (<code>TimeSeries.from_names</code>).",
+            "Real trap: the model's sensors must be exactly the ones in the log. The Menagerie G1 comes with an IMU; the bench test removes it."
+          ]
+        },
+        {
+          "titulo": "optimize",
+          "sub": "least squares",
+          "texto": [
+            "Recompiles the model on each attempt, runs the rollout, and minimizes the difference. On CPU, a few seconds to a minute for two parameters."
+          ]
+        },
+        {
+          "titulo": "Reveal",
+          "sub": "test only",
+          "texto": [
+            "On a real robot there is no hidden value to check against. Here there is: <code>--revelar</code> opens real.json and tells you whether you landed within ±10 %.",
+            "The honest check on the robot is another test, one the fit never saw."
+          ]
+        }
+      ]
+    },
+    {
+      "tipo": "codigo",
+      "titulo": "Install the toolbox and collect the test",
+      "sub": "The [sysid] extra brings scipy, matplotlib, and plotly. coletar.py records the test of the hanging \"real robot\".",
+      "blocos": [
+        {
+          "rot": "Terminal · mujoco[sysid]",
+          "icone": "terminal",
+          "conteudo": "F=${FTH:-$HOME/fth}; cd $F && . .venv/bin/activate\npip install -q \"mujoco[sysid]==3.16.0\"\npython3 -c \"from mujoco import sysid; print('mujoco.sysid ok:', sysid.optimize.__name__, sysid.Parameter.__name__)\""
+        },
+        {
+          "rot": "Terminal · bench test",
+          "icone": "terminal",
+          "conteudo": "F=${FTH:-$HOME/fth}; cd $F/sim2real && . $F/.venv/bin/activate\npython3 kit/coletar.py --saida $F/log.npz"
+        }
+      ],
+      "saida": {
+        "selo": "real",
+        "abas": [
+          {
+            "rot": "Captured output (10/19/2026)",
+            "html": "<pre>ensaio de bancada no mundo 'real': 1999 amostras em 4.0 s · 4 encoders + velocidades\n  enc_left_hip_pitch     amplitude medida  18.6°\n  enc_left_hip_roll      amplitude medida  29.6°\n  enc_left_knee          amplitude medida  50.0°\n  enc_left_ankle_pitch   amplitude medida  19.3°\ngravado: ~/fth/log.npz</pre><p>Four joints, 4 s, 1,999 samples. The knee swings 50° from end to end.</p>"
+          },
+          {
+            "rot": "Installation",
+            "html": "<pre>mujoco.sysid ok: optimize Parameter</pre><p>Without the extra, <code>mujoco.sysid</code> exists but has no <code>optimize</code>: the module hides whatever depends on scipy.</p>"
+          }
+        ]
+      }
+    },
+    {
+      "tipo": "codigo",
+      "titulo": "Identify kp and kd",
+      "sub": "Starts from the nominal model (kp = kd = 1.0 × the one in deploy.yaml) and adjusts both.",
+      "blocos": [
+        {
+          "rot": "Terminal · sysid",
+          "icone": "terminal",
+          "conteudo": "F=${FTH:-$HOME/fth}; cd $F/sim2real && . $F/.venv/bin/activate\npython3 kit/sysid.py $F/log.npz --revelar; echo \"saída: $?\""
+        },
+        {
+          "rot": "Terminal · kp only (the common mistake)",
+          "icone": "terminal",
+          "conteudo": "F=${FTH:-$HOME/fth}; cd $F/sim2real && . $F/.venv/bin/activate\npython3 kit/sysid.py $F/log.npz --parametros kp --revelar | tail -4; echo \"saída: ${PIPESTATUS[0]}\""
+        },
+        {
+          "rot": "Terminal · the same test in the \"sim\" world (E3)",
+          "icone": "terminal",
+          "conteudo": "F=${FTH:-$HOME/fth}; cd $F/sim2real && . $F/.venv/bin/activate\npython3 kit/coletar.py --mundo sim --saida $F/log-sim.npz | tail -1\npython3 kit/sysid.py $F/log-sim.npz | tail -4"
+        }
+      ],
+      "saida": {
+        "selo": "real",
+        "abas": [
+          {
+            "rot": "Captured output (10/19/2026)",
+            "html": "<pre>log: ~/fth/log.npz · 1999 amostras · sinais: 8 (posição e velocidade de 4 juntas)\nresíduo, modelo nominal:       0.034\nresíduo, modelo identificado:  0.014\nerro das posições na bancada, modelo nominal:       8.16° (RMS)\nerro das posições na bancada, modelo identificado:  3.14° (RMS)\nkp         nominal   1.00 → identificado   0.57\nkd         nominal   1.00 → identificado   1.08\nkp         escondido   0.60 · dentro de ±10 %: sim\nkd         escondido   1.00 · dentro de ±10 %: sim\nsaída: 0</pre><p>kp comes back near 0.6 (the motor delivers 60% of the commanded gain) and kd stays near 1.0, because the \"real\" robot did not touch kd. The position error drops to less than half.</p>"
+          },
+          {
+            "rot": "Common mistake: identifying only kp",
+            "html": "<pre>erro das posições na bancada, modelo nominal:       8.16° (RMS)\nerro das posições na bancada, modelo identificado:  3.55° (RMS)\nkp         nominal   1.00 → identificado   0.52\nkp         escondido   0.60 · dentro de ±10 %: não\nsaída: 1</pre><p>With a single parameter, the optimizer dumps everything the model doesn't explain onto kp, including the 20 ms latency that lesson 4 measures. A parameter missing from the model leaks into the others: give the fit the degrees of freedom the test excites.</p>"
+          },
+          {
+            "rot": "Test in the sim",
+            "html": "<pre>gravado: ~/fth/log-sim.npz\nerro das posições na bancada, modelo nominal:       0.11° (RMS)\nerro das posições na bancada, modelo identificado:  0.11° (RMS)\nkp         nominal   1.00 → identificado   1.00\nkd         nominal   1.00 → identificado   1.00</pre><p>In the world with no hidden difference, the fit has nothing to correct: kp and kd stay at 1.00, and the error that remains, 0.11°, is encoder noise (0.002 rad).</p>"
+          }
+        ]
+      }
+    },
+    {
+      "tipo": "pratica",
+      "titulo": "Practice",
+      "sub": "Measure the actuator of the \"simulated real\" robot.",
+      "exercicios": [
+        {
+          "id": "e1",
+          "titulo": "E1 · Recorded test",
+          "min": "5 min",
+          "texto": "Install the toolbox and run the bench test.",
+          "pronto": "<code>python3 kit/coletar.py --saida ~/fth/log.npz</code> ends with <code>gravado: ~/fth/log.npz</code>, showing <code>enc_left_knee … 50.0°</code>."
+        },
+        {
+          "id": "e2",
+          "titulo": "E2 · Identified kp and kd",
+          "min": "5 min",
+          "texto": "Run the system identification and check it against the hidden value.",
+          "pronto": "<code>python3 kit/sysid.py ~/fth/log.npz --revelar; echo \"saída: $?\"</code> → the kp line ends with <code>dentro de ±10 %: sim</code> (hidden 0.60) and <code>saída: 0</code>."
+        },
+        {
+          "id": "e3",
+          "titulo": "E3 · The test that lies",
+          "min": "10 min",
+          "texto": "Run the same test in the \"sim\" world and identify (last block). Then explain in two lines why only kp, in the \"real\" log, falls outside ±10 %.",
+          "pronto": "in the sim block, the kp line ends with <code>identificado   1.00</code>; you wrote that the latency (delay) missing from the model ended up in kp."
+        }
+      ]
+    },
+    {
+      "tipo": "quiz",
+      "titulo": "Lesson quiz",
+      "sub": "The explanation appears after your answer.",
+      "perguntas": [
+        {
+          "p": "Why is the test done with the robot hanging from the gantry?",
+          "opcoes": [
+            "Because MuJoCo does not simulate foot contact with the ground on the bench.",
+            "To isolate the leg and the actuator, with no foot friction and no balance.",
+            "Because sysid only accepts joints without gravity.",
+            "So the robot can walk faster during the test."
+          ],
+          "certa": 1,
+          "explica": "Without contact, what moves the leg is the actuator against inertia and gravity. That is what you want to measure, and with no risk of a fall.",
+          "ref": "diagrama",
+          "cert": true
+        },
+        {
+          "p": "Identifying kp alone, it comes out 0.52; with kp and kd together, close to 0.6. What happened?",
+          "opcoes": [
+            "The hidden kd was also 0.52, and the fit swapped the two.",
+            "Encoder noise always pulls kp down.",
+            "The model without latency dumped on kp what it could not explain.",
+            "The toolbox has a known bug when it fits a single parameter."
+          ],
+          "certa": 2,
+          "explica": "With the latency missing from the model, the fit compensates with whatever it can move. With kd free, kp comes out cleaner. Identifiability is about the model, not just the data.",
+          "ref": "codigo"
+        },
+        {
+          "p": "On the real robot, how do you check an identified parameter?",
+          "opcoes": [
+            "By opening the manufacturer's file of hidden parameters.",
+            "By repeating the same test used for the fit and watching the error drop.",
+            "By comparing it with the kp in deploy.yaml, which is the correct value.",
+            "With a new test, one the fit has not seen, and its error."
+          ],
+          "certa": 3,
+          "explica": "The same test always improves after the fit. Only a different test (another frequency, another joint) shows whether the parameter generalizes.",
+          "ref": "passos"
+        }
+      ]
+    },
+    {
+      "tipo": "resumo",
+      "titulo": "In three sentences",
+      "itens": [
+        {
+          "t": "Test",
+          "texto": "Robot hanging, sweep from 0.5 to 3 Hz, noisy encoders: 1,999 samples in 4 s."
+        },
+        {
+          "t": "Toolbox",
+          "texto": "mujoco.sysid fits kp and kd and brings kp back to within ±10 % of the hidden value."
+        },
+        {
+          "t": "Careful",
+          "texto": "What is missing from the model leaks into the parameters you left free."
+        }
+      ]
+    },
+    {
+      "tipo": "links",
+      "titulo": "Going further",
+      "links": [
+        {
+          "t": "MuJoCo: changelog (3.5.0 brings the identification toolbox and the delays)",
+          "href": "https://mujoco.readthedocs.io/en/stable/changelog.html",
+          "icone": "arquivo"
+        },
+        {
+          "t": "MuJoCo: MjSpec, the editable model that sysid modifies",
+          "href": "https://mujoco.readthedocs.io/en/stable/programming/modeledit.html",
+          "icone": "arquivo"
+        },
+        {
+          "t": "MuJoCo Menagerie: the G1 used on the bench",
+          "href": "https://github.com/google-deepmind/mujoco_menagerie/tree/main/unitree_g1",
+          "icone": "git"
+        }
+      ]
+    }
+  ]
+}

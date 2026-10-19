@@ -1,0 +1,279 @@
+{
+  "slug": "real2sim",
+  "num": 7,
+  "menu": "Real2sim",
+  "titulo": "Real-to-sim: llevar el mundo real al simulador",
+  "titulo_curto": "Real-to-sim",
+  "minutos": 14,
+  "lead": "Hasta aquí el camino fue del simulador al robot. El camino inverso también existe: fotografiar el lugar real y montar un gemelo digital donde el robot entrena y se prueba antes. En esta clase corres el gemelo del proyecto robotica-real2sim (un brazo, no un humanoide) en el venv del curso, pruebas un plan en la física y ves dónde está esto para humanoides en 2026.",
+  "objetivo": "correr el gemelo de robotica-real2sim en el venv del curso y probar un plan en la física antes del robot, contando los objetos de la escena.",
+  "competencias": [
+    "explicar-real-to-sim",
+    "rodar-gemeo-mujoco",
+    "ler-estado-real2sim-humanoides"
+  ],
+  "aprende": [
+    {
+      "icone": "camadas",
+      "t": "El flujo foto → escena → gemelo → episodios → prueba"
+    },
+    {
+      "icone": "robo",
+      "t": "El gemelo de robotica-real2sim corriendo con el Menagerie de tu banco de trabajo"
+    },
+    {
+      "icone": "check",
+      "t": "Un plan aprobado en 19 de 20 variaciones en la física"
+    },
+    {
+      "icone": "lupa",
+      "t": "Real-to-sim para humanoide en 2026: demo de proveedor, reportada"
+    }
+  ],
+  "hero_alt": "Mesa real con un cubo rojo, una lata azul, una pelota de tenis y una bandeja, fotografiada por un celular en un trípode, con el gemelo simulado en un monitor al lado.",
+  "secoes": [
+    {
+      "tipo": "diagrama",
+      "titulo": "Del lugar real al gemelo",
+      "sub": "Haz clic en cada bloque. Es el flujo de robotica-real2sim.",
+      "nos": [
+        {
+          "icone": "video",
+          "titulo": "Foto",
+          "sub": "el lugar",
+          "detalhe": "Una foto de la mesa, con una hoja A4 como regla. En el proyecto, un modelo de visión lee la foto; este curso no corre ese paso (llama a un modelo) y parte de la escena ya lista.",
+          "itens": [
+            {
+              "icone": "lista",
+              "t": "A4 calibra la escala"
+            }
+          ]
+        },
+        {
+          "icone": "arquivo",
+          "titulo": "Escena",
+          "sub": "cena.json",
+          "detalhe": "Objetos, tamaños y posiciones en metros. Lo que esté mal aquí (una bandeja más grande que la real) se convierte en error del gemelo.",
+          "itens": [
+            {
+              "icone": "lista",
+              "t": "4 objetos"
+            }
+          ]
+        },
+        {
+          "icone": "robo",
+          "titulo": "Gemelo",
+          "sub": "MuJoCo",
+          "forte": true,
+          "detalhe": "La escena se convierte en MJCF con el brazo Franka Panda del Menagerie. Aquí el gemelo se renderiza para compararlo con la foto.",
+          "itens": [
+            {
+              "icone": "lista",
+              "t": "gemeo.png"
+            }
+          ]
+        },
+        {
+          "icone": "check",
+          "titulo": "Prueba",
+          "sub": "20 variaciones",
+          "detalhe": "El plan se ejecuta 20 veces con posiciones y tamaños variados. Solo pasa al robot si aprueba en 90 % o más: la misma lógica de la compuerta (gate) de la clase 6.",
+          "itens": [
+            {
+              "icone": "lista",
+              "t": "APROBADO / REPROBADO"
+            }
+          ]
+        }
+      ],
+      "legenda": "Real-to-sim es el tema de robotica-real2sim. Aquí se ejecuta y se conecta con la escalera de despliegue: un gemelo del lugar es un nivel más antes del suelo."
+    },
+    {
+      "tipo": "passos",
+      "titulo": "¿Y para humanoides?",
+      "sub": "Estado en oct/2026, según la investigación de la formación. Haz clic en cada elemento.",
+      "passos": [
+        {
+          "titulo": "Gaussian splatting",
+          "sub": "reportado",
+          "texto": [
+            "Niantic Spatial, Flexion y NVIDIA mostraron una escena escaneada con cámara que se convierte en Gaussian splatting en Isaac Sim, con una policy de navegación de humanoide entrenada allí y llevada al robot sin ajustes. Es material de proveedor, no un paper con mediciones."
+          ]
+        },
+        {
+          "titulo": "GaussGym",
+          "sub": "reportado",
+          "texto": [
+            "Berkeley, ETH y Amazon FAR usan 3DGS como renderizador dentro de un simulador vectorizado, con más de 100 mil pasos por segundo (arXiv 2510.15352). Tampoco hay sim-to-real medido en humanoide hasta oct/2026, según la investigación."
+          ]
+        },
+        {
+          "titulo": "Lo que ya es rutina",
+          "sub": "terreno",
+          "texto": [
+            "Lo que ya entra en el día a día es más simple: medir el piso y la fricción, pesar el robot, escanear escalones y obstáculos para el currículo de terreno (curso 1)."
+          ]
+        },
+        {
+          "titulo": "Para ti",
+          "sub": "regla",
+          "texto": [
+            "Un gemelo es tan bueno como la medida que lo alimenta. El proyecto real2sim midió eso: modelos de visión distintos se equivocaron en el tamaño de la bandeja, y la prueba solo aprueba lo que pasa en el peor caso."
+          ]
+        }
+      ]
+    },
+    {
+      "tipo": "codigo",
+      "titulo": "Ejecutar el gemelo y la prueba",
+      "sub": "Agrega el Panda al sparse-checkout del Menagerie del banco, fija el robotica-real2sim en el commit probado y apunta su vendor/menagerie al tuyo.",
+      "blocos": [
+        {
+          "rot": "Terminal · gemelo de la mesa",
+          "icone": "terminal",
+          "conteudo": "F=${FTH:-$HOME/fth}; cd $F && . .venv/bin/activate && pip install -q pillow imageio\ngit -C mujoco_menagerie sparse-checkout add franka_emika_panda\n[ -d robotica-real2sim ] || git clone -q https://github.com/inematds/robotica-real2sim\ngit -C robotica-real2sim checkout -q 3a08537 && mkdir -p robotica-real2sim/vendor\nln -sfn $F/mujoco_menagerie robotica-real2sim/vendor/menagerie\ncd robotica-real2sim && python3 r2s.py ver exemplos/mesa-foto/cena.json $F/gemeo.png --camera cima\npython3 $F/sim2real/kit/gemeo.py exemplos/mesa-foto/cena.json $F/gemeo.png"
+        },
+        {
+          "rot": "Terminal · probar el plan (20 variaciones)",
+          "icone": "terminal",
+          "conteudo": "F=${FTH:-$HOME/fth}; cd $F/robotica-real2sim && . $F/.venv/bin/activate\npython3 r2s.py provar exemplos/mesa-foto/cena.json resultados/mesa-foto/plano.json -n 20 | tail -3"
+        }
+      ],
+      "saida": {
+        "selo": "real",
+        "abas": [
+          {
+            "rot": "Salida capturada (19/10/2026)",
+            "html": "<pre>imagem: ~/fth/gemeo.png\ncena: cena.json · mesa 1.2 × 0.8 m · objetos na cena: 4\n  cubo_vermelho    caixa\n  lata_azul        cilindro\n  bola_tenis       esfera\n  bandeja_cinza    recipiente\ngemeo.png: 1280×720 px, 135 KB</pre><p>Cuatro objetos, imagen de 1280×720 generada por la GPU (EGL), sin pantalla.</p>"
+          },
+          {
+            "rot": "Prueba",
+            "html": "<pre>plano completo em 19/20 (95%); mínimo 90% -&gt; APROVADO para o robô real\n  lata_azul -&gt; bandeja_cinza: 20 ok \n  bola_tenis -&gt; bandeja_cinza: 19 ok {'objeto caiu fora do destino': 1}</pre><p>19 de 20 (95 %): aprobado. El fallo se anota por su motivo, como en la compuerta (gate) de la clase 6.</p>"
+          },
+          {
+            "rot": "Error común: sin GPU para dibujar",
+            "html": "<pre>                                        ^^^^^^^^^^^^^^^^\nAttributeError: 'NoneType' object has no attribute 'glGetError'</pre><p>r2s.py dibuja con la GPU (<code>MUJOCO_GL=egl</code>). Sin GPU, cambia a <code>osmesa</code>, pero la biblioteca OSMesa debe estar instalada; sin ella, aparece el error de arriba. Contar objetos no depende de dibujar: gemeo.py lee el cena.json.</p>"
+          }
+        ]
+      }
+    },
+    {
+      "tipo": "video",
+      "chave": "real2sim",
+      "titulo": "El gemelo en movimiento",
+      "sub": "Clip de 10 s de robotica-real2sim: un episodio con tres cámaras."
+    },
+    {
+      "tipo": "pratica",
+      "titulo": "Práctica",
+      "sub": "El mundo real dentro del simulador.",
+      "exercicios": [
+        {
+          "id": "e1",
+          "titulo": "E1 · Gemelo dibujado",
+          "min": "5 min",
+          "texto": "Ejecuta el bloque del gemelo y abre el gemeo.png.",
+          "pronto": "<code>python3 ~/fth/sim2real/kit/gemeo.py exemplos/mesa-foto/cena.json ~/fth/gemeo.png</code> (en la carpeta del robotica-real2sim) → <code>objetos na cena: 4</code> y <code>gemeo.png: 1280×720 px</code>."
+        },
+        {
+          "id": "e2",
+          "titulo": "E2 · Plan probado",
+          "min": "3 min",
+          "texto": "Prueba el plan de ejemplo en 20 variaciones.",
+          "pronto": "<code>python3 r2s.py provar … -n 20 | tail -3</code> → <code>plano completo em 19/20 (95%); mínimo 90% -> APROVADO para o robô real</code>."
+        },
+        {
+          "id": "e3",
+          "titulo": "E3 · Lo que escanearías",
+          "min": "10 min",
+          "texto": "Para un G1 que va a caminar por un pasillo de fábrica, enumera tres medidas del lugar real que llevarías al simulador antes de la escalera de la clase 8.",
+          "pronto": "tres ítems con qué medir y con qué instrumento (p. ej.: fricción del piso con plano inclinado; altura del escalón con cinta métrica)."
+        }
+      ]
+    },
+    {
+      "tipo": "quiz",
+      "titulo": "Prueba de la clase",
+      "sub": "La explicación aparece después de tu respuesta.",
+      "perguntas": [
+        {
+          "p": "¿Qué hace el real-to-sim que el sim-to-real no hace?",
+          "opcoes": [
+            "Entrena la policy directo en el robot, sin simulador.",
+            "Lleva el lugar real al interior del simulador antes de la prueba.",
+            "Sustituye la domain randomization por una única medida exacta del lugar real.",
+            "Elimina la compuerta (gate) sim2sim."
+          ],
+          "certa": 1,
+          "explica": "Es el camino inverso: medir el mundo y armar el gemelo. Después, el camino de vuelta (sim-to-real) continúa con randomization, compuerta (gate) y escalera.",
+          "ref": "diagrama",
+          "cert": true
+        },
+        {
+          "p": "En oct/2026, el real-to-sim con Gaussian splatting para humanoides es:",
+          "opcoes": [
+            "Rutina en todo humanoide comercial.",
+            "Exigido por norma antes de encender el robot.",
+            "Demo de proveedor (reportado), sin sim-to-real medido en paper.",
+            "Imposible, porque el splatting no corre en GPU."
+          ],
+          "certa": 2,
+          "explica": "La investigación de la formación encontró demos (Niantic/Flexion/NVIDIA) y GaussGym, pero ninguna medición de sim-to-real de humanoides publicada. Dicho como reportado.",
+          "ref": "passos"
+        },
+        {
+          "p": "Sin GPU, r2s.py ver da error de OpenGL. ¿Cómo seguir?",
+          "opcoes": [
+            "Cambiar a MUJOCO_GL=osmesa con OSMesa instalada.",
+            "Borrar el cena.json y generar otro.",
+            "Usar unitree_mujoco en lugar del gemelo de la mesa, que no dibuja.",
+            "Desactivar la prueba de 20 variaciones."
+          ],
+          "certa": 0,
+          "explica": "El dibujo es solo la imagen. Con OSMesa corre en la CPU; el conteo de objetos y la prueba en la física ni siquiera necesitan dibujo.",
+          "ref": "codigo"
+        }
+      ]
+    },
+    {
+      "tipo": "resumo",
+      "titulo": "En tres frases",
+      "itens": [
+        {
+          "t": "Flujo",
+          "texto": "Foto, escena, gemelo y prueba en la física antes del robot."
+        },
+        {
+          "t": "Medida",
+          "texto": "El plan de ejemplo pasa en 19 de 20 variaciones."
+        },
+        {
+          "t": "Humanoide",
+          "texto": "El gemelo digital por splatting para humanoide aún es demo de proveedor (reportado); medir el lugar ya es rutina."
+        }
+      ]
+    },
+    {
+      "tipo": "links",
+      "titulo": "Para ir más allá",
+      "links": [
+        {
+          "t": "robotica-real2sim: la guía (dueña del tema)",
+          "href": "https://inematds.github.io/robotica-real2sim/guia/",
+          "icone": "seta"
+        },
+        {
+          "t": "Short: el robot que aprende con una foto",
+          "href": "https://www.youtube.com/shorts/8ZFzbLdrnDg",
+          "icone": "video"
+        },
+        {
+          "t": "GaussGym (arXiv 2510.15352)",
+          "href": "https://arxiv.org/abs/2510.15352",
+          "icone": "arquivo"
+        }
+      ]
+    }
+  ]
+}

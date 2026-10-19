@@ -1,0 +1,297 @@
+{
+  "slug": "atuador",
+  "num": 4,
+  "menu": "Actuador",
+  "titulo": "El actuador de verdad: retardo, límite de torque y actuator network",
+  "titulo_curto": "Retardo y límite del actuador",
+  "minutos": 16,
+  "lead": "Entre que la política decide y el motor gira hay red, bucle del controlador y PD del motor. En esta clase mides el retardo (latencia) del \"robot real\" con un escalón en la rodilla, cuentas las caídas que causan 20 y 40 ms bajo empujón y compensas el kp identificado en la clase 3.",
+  "objetivo": "medir el retardo del actuador en el banco, contar las caídas que causa bajo un empujón y compensar el kp en el comando.",
+  "competencias": [
+    "medir-atraso-por-degrau",
+    "modelar-atraso-no-mujoco",
+    "compensar-ganho-no-deploy"
+  ],
+  "aprende": [
+    {
+      "icone": "relogio",
+      "t": "Las capas del tiempo: política a 50 Hz, red, PD a 500 Hz–1 kHz"
+    },
+    {
+      "icone": "chip",
+      "t": "Retardo nativo de MuJoCo 3.5+: el atributo delay del actuador"
+    },
+    {
+      "icone": "grafico",
+      "t": "Caídas bajo empujón con 0, 20 y 40 ms de retardo"
+    },
+    {
+      "icone": "check",
+      "t": "Compensar el kp identificado y ver al \"real\" caminar"
+    }
+  ],
+  "hero_alt": "Actuador rotativo de robot en un banco de pruebas con un disco de inercia y un sensor de torque, con un osciloscopio desenfocado al fondo.",
+  "secoes": [
+    {
+      "tipo": "diagrama",
+      "titulo": "El camino del comando hasta el torque",
+      "sub": "Haz clic en cada bloque.",
+      "nos": [
+        {
+          "icone": "cerebro",
+          "titulo": "Política",
+          "sub": "50 Hz",
+          "detalhe": "La política del G1 decide cada 20 ms (el step_dt del deploy.yaml): lee el estado y devuelve 29 objetivos de posición.",
+          "itens": [
+            {
+              "icone": "lista",
+              "t": "objetivo de posición"
+            }
+          ]
+        },
+        {
+          "icone": "relogio",
+          "titulo": "Retardo",
+          "sub": "red, cola",
+          "forte": true,
+          "detalhe": "Tiempo entre el estado leído y la llegada del objetivo al motor: inferencia, red, cola del controlador. En MuJoCo 3.5+, el actuador guarda los últimos comandos (historial) y aplica el de N ms atrás.",
+          "itens": [
+            {
+              "icone": "lista",
+              "t": "delay + nsample en el actuador"
+            }
+          ]
+        },
+        {
+          "icone": "chip",
+          "titulo": "PD",
+          "sub": "500 Hz–1 kHz",
+          "detalhe": "En el robot, el PD corre en el driver del motor, mucho más rápido que la política: torque = kp × (objetivo − q) − kd × velocidad.",
+          "itens": [
+            {
+              "icone": "lista",
+              "t": "kp, kd por articulación"
+            }
+          ]
+        },
+        {
+          "icone": "x",
+          "titulo": "Límite",
+          "sub": "torque máx.",
+          "detalhe": "Cada articulación tiene un torque máximo (en el MJCF del Menagerie, 139 N·m en la rodilla y 5 N·m en el pitch y en el yaw de la muñeca). Un comando por encima de eso se recorta: la articulación no hace lo que la política pidió.",
+          "itens": [
+            {
+              "icone": "lista",
+              "t": "saturación"
+            }
+          ]
+        }
+      ],
+      "legenda": "El retardo y la saturación son invisibles en la marcha tranquila y aparecen en el empujón."
+    },
+    {
+      "tipo": "passos",
+      "titulo": "Tres formas de modelar el actuador",
+      "sub": "De lo más simple a lo que se usa cuando lo simple no alcanza.",
+      "passos": [
+        {
+          "titulo": "PD ideal",
+          "sub": "el estándar",
+          "texto": [
+            "Lo que MuJoCo e Isaac Lab hacen sin que lo pidas: el torque sale al instante, exactamente igual al PD. Es el \"sim\" de la clase 1."
+          ]
+        },
+        {
+          "titulo": "PD + retardo + límite",
+          "sub": "este curso",
+          "texto": [
+            "Agrega el retardo medido y el límite de torque declarado. MuJoCo 3.5+ aplica el retardo por sí solo (<code>delay</code> y <code>nsample</code> en el actuador); el kit llena el historial con el primer comando para no empezar desde un objetivo cero.",
+            "Con sysid (clase 3) y randomización alrededor del valor medido, es lo que hacen muchos proyectos."
+          ]
+        },
+        {
+          "titulo": "Actuator network",
+          "sub": "aprendido",
+          "texto": [
+            "Una red neuronal pequeña aprende, con datos del motor real, la relación entre comando, historial de posición y torque entregado, y entra en el simulador en lugar del PD ideal.",
+            "Vale la pena cuando el actuador tiene efectos que un parámetro no captura. Exige un banco de pruebas del motor; este curso solo la menciona."
+          ]
+        },
+        {
+          "titulo": "Ganancia por motor",
+          "sub": "en el deploy",
+          "texto": [
+            "El stack GR00T-WholeBodyControl, de NVIDIA, agregó el 31/08/2026 el escalado de kp y kd por motor contra tropiezos en la política SONIC: sim-to-real también es ajuste fino de PD a la hora de desplegar.",
+            "El E3 de esta clase hace la versión mínima: multiplica el kp enviado por el inverso del identificado."
+          ]
+        }
+      ]
+    },
+    {
+      "tipo": "codigo",
+      "titulo": "Medir el retardo y contar caídas",
+      "sub": "--medir da un escalón de 0,3 rad en la rodilla con el robot colgado. --ms corre la marcha con 6 empujones (120, 150 y 180 N durante 0,2 s, hacia adelante y de lado) por retardo.",
+      "blocos": [
+        {
+          "rot": "Terminal · medir el retardo en el banco",
+          "icone": "terminal",
+          "conteudo": "F=${FTH:-$HOME/fth}; cd $F/sim2real && . $F/.venv/bin/activate\npython3 kit/atraso.py --medir"
+        },
+        {
+          "rot": "Terminal · caídas por retardo",
+          "icone": "terminal",
+          "conteudo": "F=${FTH:-$HOME/fth}; cd $F/sim2real && . $F/.venv/bin/activate\npython3 kit/atraso.py --ms 0 20 40"
+        }
+      ],
+      "saida": {
+        "selo": "real",
+        "abas": [
+          {
+            "rot": "Salida capturada (19/10/2026)",
+            "html": "<pre>degrau de 0,3 rad no joelho esquerdo, robô pendurado: tempo até o encoder mexer 0,005 rad\n  sim:               8 ms\n  real:             30 ms\natraso medido (real − sim): 22 ms</pre><p>El \"real\" tarda 22 ms más que el sim en mover la rodilla: los 20 ms de retardo ocultos más un poco del kp más blando, que también retrasa la respuesta.</p>"
+          },
+          {
+            "rot": "Caídas por retardo",
+            "html": "<pre>atraso   quedas em 6 empurrões   (120/150/180 N, frente e lado, 0,2 s, t = 3 s)\n   0 ms  2/6   . . . . x x\n  20 ms  3/6   x x x . . .\n  40 ms  6/6   x x x x x x\n(x = caiu, . = ficou de pé; ordem: 120, 150, 180 N para a frente e depois para o lado)</pre><p>Con 40 ms, cae en los seis. Con 0 ms, aún cae en dos empujones laterales; con 20 ms, en los tres frontales.</p>"
+          },
+          {
+            "rot": "Error común: leer el patrón",
+            "html": "<p>No concluyas que \"20 ms es mejor de lado que 0 ms\". Son seis ensayos con una semilla: el patrón de caídas oscila; lo que se lee es el conteo subiendo con el retardo (2, 3, 6). Para afirmar más, aumenta los empujones y las direcciones.</p>"
+          }
+        ]
+      }
+    },
+    {
+      "tipo": "codigo",
+      "titulo": "Compensar el kp en el comando",
+      "sub": "La clase 3 identificó kp ≈ 0,57 del enviado. Si envías 1/0,57 ≈ 1,75 veces el kp, el motor del \"real\" entrega algo cercano a lo que la policy espera.",
+      "blocos": [
+        {
+          "rot": "Terminal · kp compensado",
+          "icone": "terminal",
+          "conteudo": "F=${FTH:-$HOME/fth}; cd $F/sim2real && . $F/.venv/bin/activate\npython3 kit/dois_mundos.py --kp-comando 1.75; echo \"saída: $?\""
+        }
+      ],
+      "saida": {
+        "selo": "real",
+        "abas": [
+          {
+            "rot": "Salida capturada (19/10/2026)",
+            "html": "<pre>política: unitree_rl_lab G1 29 GDL velocity v0 (ONNX, 480 entradas) · comando 0.50 m/s · 10 s\nsim                          queda: não · andou 5.1 m em 10 s (vel. 0.51 m/s; pedida 0.50)\nreal simulado                queda: não · andou 4.5 m em 10 s (vel. 0.45 m/s; pedida 0.50)\nsaída: 0</pre><p>El \"real simulado\" ahora camina 4,5 m y no se cae (salida 0). El sim, con el kp más duro, sigue caminando. El retardo, la masa y la fricción siguen ahí: la policy aguanta, porque se corrigió la mayor diferencia.</p>"
+          }
+        ]
+      }
+    },
+    {
+      "tipo": "pratica",
+      "titulo": "Práctica",
+      "sub": "Tiempo y torque del actuador.",
+      "exercicios": [
+        {
+          "id": "e1",
+          "titulo": "E1 · Retardo medido",
+          "min": "3 min",
+          "texto": "Da el escalón en la rodilla en los dos mundos.",
+          "pronto": "<code>python3 kit/atraso.py --medir</code> → <code>atraso medido (real − sim): 22 ms</code>."
+        },
+        {
+          "id": "e2",
+          "titulo": "E2 · Caídas por retardo",
+          "min": "5 min",
+          "texto": "Corre la marcha con empujones en 0, 20 y 40 ms.",
+          "pronto": "<code>python3 kit/atraso.py --ms 0 20 40</code> → <code>0 ms  2/6</code>, <code>20 ms  3/6</code>, <code>40 ms  6/6</code>."
+        },
+        {
+          "id": "e3",
+          "titulo": "E3 · Compensar y caminar",
+          "min": "5 min",
+          "texto": "Usa el kp que identificaste en la clase 3 (1 dividido por él) y corre los dos mundos de nuevo.",
+          "pronto": "<code>python3 kit/dois_mundos.py --kp-comando 1.75; echo \"saída: $?\"</code> → <code>real simulado … queda: não</code> y <code>saída: 0</code>."
+        }
+      ]
+    },
+    {
+      "tipo": "quiz",
+      "titulo": "Prueba de la clase",
+      "sub": "La explicación aparece después de tu respuesta.",
+      "perguntas": [
+        {
+          "p": "Sin empujón, la policy camina con los 20 ms de retardo del \"real\" (clase 1). Con empujón, 40 ms la tumban en 6 de 6. ¿Qué enseña esto?",
+          "opcoes": [
+            "Que el retardo solo importa cuando el robot está quieto.",
+            "Que el empujón es lo que mide el margen que le quita el retardo.",
+            "Que la policy se entrenó con exactamente 40 ms de retardo fijo.",
+            "Que MuJoCo ignora el retardo en la marcha normal."
+          ],
+          "certa": 1,
+          "explica": "En la marcha tranquila, la policy corrige con holgura. El empujón exige una reacción rápida, y ahí cada milisegundo pesa. Una prueba de robustez necesita perturbación.",
+          "ref": "codigo",
+          "cert": true
+        },
+        {
+          "p": "MuJoCo 3.5+ modela el retardo en el propio actuador. ¿Qué hace el kit además al iniciar?",
+          "opcoes": [
+            "Llena el historial de comandos con el primer objetivo.",
+            "Desactiva el retardo en los primeros 20 ms de simulación.",
+            "Aumenta el kp para compensar el retardo.",
+            "Cambia el integrador para no acumular retardo."
+          ],
+          "certa": 0,
+          "explica": "El historial empieza en cero: si no se llena, los primeros N ms mandan objetivo cero a las articulaciones, un tirón que no existe en el robot.",
+          "ref": "passos"
+        },
+        {
+          "p": "¿Cuándo vale la pena entrenar una actuator network en vez de PD con retardo?",
+          "opcoes": [
+            "Siempre que el robot tenga más de 20 articulaciones.",
+            "Cuando el simulador no tiene actuador de posición.",
+            "Cuando el actuador tiene efectos que pocos parámetros no capturan.",
+            "Cuando aún no hay ningún dato medido del motor real disponible."
+          ],
+          "certa": 2,
+          "explica": "La red aprende la relación comando → torque a partir de datos del motor. Necesita esos datos; sin ellos, PD con retardo e identificación de sistemas (sysid) es el camino.",
+          "ref": "passos"
+        }
+      ]
+    },
+    {
+      "tipo": "resumo",
+      "titulo": "En tres frases",
+      "itens": [
+        {
+          "t": "Medida",
+          "texto": "Un escalón en la rodilla con el robot colgado mide el retardo: 22 ms."
+        },
+        {
+          "t": "Efecto",
+          "texto": "Bajo empujón, las caídas suben de 2/6 (0 ms) a 6/6 (40 ms)."
+        },
+        {
+          "t": "Corrección",
+          "texto": "Enviar el kp dividido por el identificado hace que el \"real simulado\" camine sin caerse."
+        }
+      ]
+    },
+    {
+      "tipo": "links",
+      "titulo": "Para ir más allá",
+      "links": [
+        {
+          "t": "MuJoCo: actuadores (delay, nsample, interp) en la referencia del XML",
+          "href": "https://mujoco.readthedocs.io/en/stable/XMLreference.html",
+          "icone": "arquivo"
+        },
+        {
+          "t": "GR00T-WholeBodyControl (SONIC): ganancias por motor en el deploy",
+          "href": "https://github.com/NVlabs/GR00T-WholeBodyControl",
+          "icone": "git"
+        },
+        {
+          "t": "unitree_rl_lab: kp e kd do G1 no deploy.yaml",
+          "href": "https://github.com/unitreerobotics/unitree_rl_lab",
+          "icone": "git"
+        }
+      ]
+    }
+  ]
+}

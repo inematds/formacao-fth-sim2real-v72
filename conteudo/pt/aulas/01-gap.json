@@ -5,7 +5,7 @@
   "titulo": "Onde o simulador mente num humanoide",
   "titulo_curto": "O gap sim × real",
   "minutos": 16,
-  "lead": "Uma política que anda no simulador e cai no robô: é o problema do curso inteiro. Nesta aula você monta a bancada, roda uma política de marcha pronta do Unitree G1 em dois mundos, o \"sim\" e um \"real simulado\" com parâmetros escondidos, e descobre que nenhuma diferença sozinha a derruba: a soma delas, sim.",
+  "lead": "Uma política que anda no simulador e cai no robô: é o problema do curso. Nesta aula você monta a bancada, roda a política de marcha pronta do Unitree G1 no \"sim\" e num \"real simulado\" com parâmetros escondidos, e descobre que nenhuma diferença sozinha a derruba; a soma delas, sim.",
   "objetivo": "medir o gap rodando a mesma política em \"sim\" e \"real simulado\" e achar que nenhum parâmetro sozinho a derruba.",
   "competencias": [
     "nomear-fontes-do-gap",
@@ -219,7 +219,7 @@
           "titulo": "E3 · Ache o culpado",
           "min": "5 min",
           "texto": "Rode o laço \"um parâmetro por vez\" e escreva qual parâmetro sozinho mais muda o comportamento e o que muda.",
-          "pronto": "as 4 linhas terminam em <code>queda: não</code> e a do kp mostra <code>vel. 0.75 m/s; pedida 0.50</code>; você escreveu \"nenhum derruba sozinho; o kp muda a velocidade\"."
+          "pronto": "as 4 linhas mostram <code>queda: não</code> e a do kp mostra <code>vel. 0.75 m/s; pedida 0.50</code>; você escreveu \"nenhum derruba sozinho; o kp muda a velocidade\"."
         }
       ]
     },

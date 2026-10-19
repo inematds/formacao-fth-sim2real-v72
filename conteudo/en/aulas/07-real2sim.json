@@ -1,0 +1,279 @@
+{
+  "slug": "real2sim",
+  "num": 7,
+  "menu": "Real2sim",
+  "titulo": "Real-to-sim: bringing the real world into the simulator",
+  "titulo_curto": "Real-to-sim",
+  "minutos": 14,
+  "lead": "So far the path has gone from the simulator to the robot. The reverse path exists too: photograph the real place and build a twin where the robot trains and is tested first. In this lesson you run the twin from the robotica-real2sim project (an arm, not a humanoid) in the course venv and prove a plan in the physics, and you see where this stands for humanoids in 2026.",
+  "objetivo": "run the robotica-real2sim twin in the course venv and prove a plan in the physics before the robot, counting the objects in the scene.",
+  "competencias": [
+    "explicar-real-to-sim",
+    "rodar-gemeo-mujoco",
+    "ler-estado-real2sim-humanoides"
+  ],
+  "aprende": [
+    {
+      "icone": "camadas",
+      "t": "The flow: photo → scene → twin → episodes → proof"
+    },
+    {
+      "icone": "robo",
+      "t": "The robotica-real2sim twin running with the Menagerie from your bench"
+    },
+    {
+      "icone": "check",
+      "t": "A plan approved in 19 of 20 variations in the physics"
+    },
+    {
+      "icone": "lupa",
+      "t": "Real-to-sim for humanoids in 2026: vendor demo, reported"
+    }
+  ],
+  "hero_alt": "A real table with a red cube, a blue can, a tennis ball, and a tray, photographed by a phone on a tripod, with the simulated twin on a monitor beside it.",
+  "secoes": [
+    {
+      "tipo": "diagrama",
+      "titulo": "From the real place to the twin",
+      "sub": "Click each block. This is the robotica-real2sim flow.",
+      "nos": [
+        {
+          "icone": "video",
+          "titulo": "Photo",
+          "sub": "the place",
+          "detalhe": "A photo of the table, with an A4 sheet as a ruler. In the project, a vision model reads the photo; this course doesn't run that step (it calls a model) and starts from the scene already prepared.",
+          "itens": [
+            {
+              "icone": "lista",
+              "t": "A4 calibrates the scale"
+            }
+          ]
+        },
+        {
+          "icone": "arquivo",
+          "titulo": "Scene",
+          "sub": "cena.json",
+          "detalhe": "Objects, sizes and positions in meters. Whatever is wrong here (a tray bigger than the real one) becomes a twin (digital twin) error.",
+          "itens": [
+            {
+              "icone": "lista",
+              "t": "4 objects"
+            }
+          ]
+        },
+        {
+          "icone": "robo",
+          "titulo": "Twin",
+          "sub": "MuJoCo",
+          "forte": true,
+          "detalhe": "The scene becomes MJCF with the Franka Panda arm from Menagerie. Here the twin (digital twin) is rendered so you can compare it with the photo.",
+          "itens": [
+            {
+              "icone": "lista",
+              "t": "gemeo.png"
+            }
+          ]
+        },
+        {
+          "icone": "check",
+          "titulo": "Proof",
+          "sub": "20 variations",
+          "detalhe": "The plan runs 20 times with varied positions and sizes. It only goes to the robot if it passes at 90% or more: the same logic as the gate in lesson 6.",
+          "itens": [
+            {
+              "icone": "lista",
+              "t": "APPROVED / REJECTED"
+            }
+          ]
+        }
+      ],
+      "legenda": "Real-to-sim is the subject of robotica-real2sim. Here it runs and is tied to the ladder: a twin (digital twin) of the place is one more step before the floor."
+    },
+    {
+      "tipo": "passos",
+      "titulo": "What about humanoids?",
+      "sub": "Status as of Oct 2026, according to the program's research. Click each item.",
+      "passos": [
+        {
+          "titulo": "Gaussian splatting",
+          "sub": "reported",
+          "texto": [
+            "Niantic Spatial, Flexion and NVIDIA showed a scene scanned by camera turning into Gaussian splatting in Isaac Sim, with a humanoid navigation policy trained there and taken to the robot with no tuning. This is vendor material, not a paper with measurements."
+          ]
+        },
+        {
+          "titulo": "GaussGym",
+          "sub": "reported",
+          "texto": [
+            "Berkeley, ETH and Amazon FAR use 3DGS as a renderer inside a vectorized simulator, at 100k+ steps per second (arXiv 2510.15352). Also with no measured sim-to-real on a humanoid as of Oct 2026, according to the research."
+          ]
+        },
+        {
+          "titulo": "What is already routine",
+          "sub": "terrain",
+          "texto": [
+            "What already makes it into day-to-day work is simpler: measuring the floor and the friction, weighing the robot, scanning steps and obstacles for the terrain curriculum (course 1)."
+          ]
+        },
+        {
+          "titulo": "For you",
+          "sub": "rule",
+          "texto": [
+            "A twin (digital twin) is only as good as the measurement that feeds it. The real2sim project measured this: different vision models got the tray size wrong, and the proof only approves what passes in the worst case."
+          ]
+        }
+      ]
+    },
+    {
+      "tipo": "codigo",
+      "titulo": "Run the twin and the proof",
+      "sub": "Adds the Panda to the bench's Menagerie sparse-checkout, pins robotica-real2sim to the tested commit and points its vendor/menagerie to yours.",
+      "blocos": [
+        {
+          "rot": "Terminal · desk twin (digital twin)",
+          "icone": "terminal",
+          "conteudo": "F=${FTH:-$HOME/fth}; cd $F && . .venv/bin/activate && pip install -q pillow imageio\ngit -C mujoco_menagerie sparse-checkout add franka_emika_panda\n[ -d robotica-real2sim ] || git clone -q https://github.com/inematds/robotica-real2sim\ngit -C robotica-real2sim checkout -q 3a08537 && mkdir -p robotica-real2sim/vendor\nln -sfn $F/mujoco_menagerie robotica-real2sim/vendor/menagerie\ncd robotica-real2sim && python3 r2s.py ver exemplos/mesa-foto/cena.json $F/gemeo.png --camera cima\npython3 $F/sim2real/kit/gemeo.py exemplos/mesa-foto/cena.json $F/gemeo.png"
+        },
+        {
+          "rot": "Terminal · prove the plan (20 variations)",
+          "icone": "terminal",
+          "conteudo": "F=${FTH:-$HOME/fth}; cd $F/robotica-real2sim && . $F/.venv/bin/activate\npython3 r2s.py provar exemplos/mesa-foto/cena.json resultados/mesa-foto/plano.json -n 20 | tail -3"
+        }
+      ],
+      "saida": {
+        "selo": "real",
+        "abas": [
+          {
+            "rot": "Captured output (10/19/2026)",
+            "html": "<pre>imagem: ~/fth/gemeo.png\ncena: cena.json · mesa 1.2 × 0.8 m · objetos na cena: 4\n  cubo_vermelho    caixa\n  lata_azul        cilindro\n  bola_tenis       esfera\n  bandeja_cinza    recipiente\ngemeo.png: 1280×720 px, 135 KB</pre><p>Four objects, a 1280×720 image generated by the GPU (EGL), no screen.</p>"
+          },
+          {
+            "rot": "Proof",
+            "html": "<pre>plano completo em 19/20 (95%); mínimo 90% -&gt; APROVADO para o robô real\n  lata_azul -&gt; bandeja_cinza: 20 ok \n  bola_tenis -&gt; bandeja_cinza: 19 ok {'objeto caiu fora do destino': 1}</pre><p>19 out of 20 (95%): approved. The failure is noted by cause, as in the gate in lesson 6.</p>"
+          },
+          {
+            "rot": "Common error: no GPU to render with",
+            "html": "<pre>                                        ^^^^^^^^^^^^^^^^\nAttributeError: 'NoneType' object has no attribute 'glGetError'</pre><p>r2s.py renders on the GPU (<code>MUJOCO_GL=egl</code>). Without a GPU, switch to <code>osmesa</code>, but the OSMesa library must be installed; without it, you get the error above. Counting objects doesn't depend on rendering: gemeo.py reads cena.json.</p>"
+          }
+        ]
+      }
+    },
+    {
+      "tipo": "video",
+      "chave": "real2sim",
+      "titulo": "The twin (digital twin) in motion",
+      "sub": "A 10 s clip from robotica-real2sim: one episode with three cameras."
+    },
+    {
+      "tipo": "pratica",
+      "titulo": "Practice",
+      "sub": "The real world inside the simulator.",
+      "exercicios": [
+        {
+          "id": "e1",
+          "titulo": "E1 · Twin (digital twin) rendered",
+          "min": "5 min",
+          "texto": "Run the twin block and open gemeo.png.",
+          "pronto": "<code>python3 ~/fth/sim2real/kit/gemeo.py exemplos/mesa-foto/cena.json ~/fth/gemeo.png</code> (in the robotica-real2sim folder) → <code>objetos na cena: 4</code> and <code>gemeo.png: 1280×720 px</code>."
+        },
+        {
+          "id": "e2",
+          "titulo": "E2 · Proof of the plan",
+          "min": "3 min",
+          "texto": "Prove the example plan in 20 variations.",
+          "pronto": "<code>python3 r2s.py provar … -n 20 | tail -3</code> → <code>plano completo em 19/20 (95%); mínimo 90% -> APROVADO para o robô real</code>."
+        },
+        {
+          "id": "e3",
+          "titulo": "E3 · What you would scan",
+          "min": "10 min",
+          "texto": "For a G1 that will walk down a factory corridor, list three measurements of the real place that you would bring into the simulator before the ladder in lesson 8.",
+          "pronto": "three items with what to measure and with which instrument (e.g., floor friction with an inclined plane; step height with a tape measure)."
+        }
+      ]
+    },
+    {
+      "tipo": "quiz",
+      "titulo": "Lesson quiz",
+      "sub": "The explanation appears after your answer.",
+      "perguntas": [
+        {
+          "p": "What does real-to-sim do that sim-to-real does not?",
+          "opcoes": [
+            "It trains the policy directly on the robot, without a simulator.",
+            "It brings the real place into the simulator before the test.",
+            "It replaces randomization with a single exact measurement of the real place.",
+            "It makes the sim2sim gate unnecessary."
+          ],
+          "certa": 1,
+          "explica": "It's the opposite direction: measure the world and build the twin. Then the way back (sim-to-real) still uses randomization, the gate, and the ladder.",
+          "ref": "diagrama",
+          "cert": true
+        },
+        {
+          "p": "As of Oct 2026, real-to-sim with Gaussian splatting for humanoids is:",
+          "opcoes": [
+            "Routine on every commercial humanoid.",
+            "Required by regulation before you power on the robot.",
+            "Vendor demo (reported), no sim-to-real measured in a paper.",
+            "Impossible, because splatting doesn't run on a GPU."
+          ],
+          "certa": 2,
+          "explica": "The course research found demos (Niantic/Flexion/NVIDIA) and GaussGym, but no published sim-to-real measurement for a humanoid. Stated as reported.",
+          "ref": "passos"
+        },
+        {
+          "p": "Without a GPU, r2s.py ver gives an OpenGL error. How do you go on?",
+          "opcoes": [
+            "Switch to MUJOCO_GL=osmesa with OSMesa installed.",
+            "Delete cena.json and generate another one.",
+            "Use unitree_mujoco in place of the desk twin, which doesn't render.",
+            "Turn off the 20-variation test."
+          ],
+          "certa": 0,
+          "explica": "The rendering is just the image. With OSMesa it runs on the CPU; the object count and the physics test don't even need rendering.",
+          "ref": "codigo"
+        }
+      ]
+    },
+    {
+      "tipo": "resumo",
+      "titulo": "In three sentences",
+      "itens": [
+        {
+          "t": "Flow",
+          "texto": "Photo, scene, twin, and a physics test before the robot."
+        },
+        {
+          "t": "Measurement",
+          "texto": "The example plan passes 19 of 20 variations."
+        },
+        {
+          "t": "Humanoid",
+          "texto": "A splatting twin (digital twin) for humanoids is still a vendor demo (reported); measuring the place is already routine."
+        }
+      ]
+    },
+    {
+      "tipo": "links",
+      "titulo": "Going further",
+      "links": [
+        {
+          "t": "robotica-real2sim: the guide (owner of the subject)",
+          "href": "https://inematds.github.io/robotica-real2sim/guia/",
+          "icone": "seta"
+        },
+        {
+          "t": "Short: the robot that learns from a photo",
+          "href": "https://www.youtube.com/shorts/8ZFzbLdrnDg",
+          "icone": "video"
+        },
+        {
+          "t": "GaussGym (arXiv 2510.15352)",
+          "href": "https://arxiv.org/abs/2510.15352",
+          "icone": "arquivo"
+        }
+      ]
+    }
+  ]
+}

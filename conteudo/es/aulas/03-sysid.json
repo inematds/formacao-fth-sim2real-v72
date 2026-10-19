@@ -1,0 +1,322 @@
+{
+  "slug": "sysid",
+  "num": 3,
+  "menu": "Sysid",
+  "titulo": "Identificación de sistemas: medir para modelar",
+  "titulo_curto": "Identificación de sistemas",
+  "minutos": 17,
+  "lead": "Randomizar cubre lo que no sabes; identificar reduce lo que no sabes. En esta clase cuelgas el \"robot real\" del pórtico, haces que la pierna se balancee en un barrido de frecuencia, grabas los encoders y usas el toolbox de identificación de sistemas del propio MuJoCo para descubrir el kp y el kd que el motor entrega de verdad.",
+  "objetivo": "identificar el kp y el kd del actuador en un ensayo de banco con el toolbox mujoco.sysid y compararlos con el valor oculto.",
+  "competencias": [
+    "planejar-ensaio-de-bancada",
+    "usar-mujoco-sysid",
+    "ler-identificabilidade"
+  ],
+  "aprende": [
+    {
+      "icone": "robo",
+      "t": "El ensayo de banco: robot colgado, pierna en barrido de 0,5 a 3 Hz"
+    },
+    {
+      "icone": "chip",
+      "t": "El toolbox mujoco.sysid (MuJoCo 3.5+): Parameter, ModelSequences, optimize"
+    },
+    {
+      "icone": "grafico",
+      "t": "Error del modelo bajando de 8,16° a menos de 4° en las posiciones"
+    },
+    {
+      "icone": "lupa",
+      "t": "Por qué identificar solo el kp sale mal cuando falta algo en el modelo"
+    }
+  ],
+  "hero_alt": "Robot humanoide suspendido por correas en un pórtico de acero, con los pies fuera del suelo y cables que conectan la pierna a un equipo de medición.",
+  "secoes": [
+    {
+      "tipo": "diagrama",
+      "titulo": "Del ensayo al parámetro",
+      "sub": "Haz clic en cada bloque.",
+      "nos": [
+        {
+          "icone": "robo",
+          "titulo": "Pórtico",
+          "sub": "pies en el aire",
+          "detalhe": "Robot suspendido: la pierna se mueve sin contacto con el suelo. Así el ensayo mide el actuador y la pierna, sin mezclar la fricción del pie ni el equilibrio. Es también el nivel seguro de la escalera (clase 8).",
+          "itens": [
+            {
+              "icone": "lista",
+              "t": "pelvis sujeta, sin caída"
+            }
+          ]
+        },
+        {
+          "icone": "grafico",
+          "titulo": "Barrido",
+          "sub": "0,5 → 3 Hz",
+          "detalhe": "El comando sube de frecuencia a lo largo de 4 s en cuatro articulaciones de la pierna izquierda. La frecuencia baja muestra la rigidez (kp); la alta muestra el amortiguamiento (kd) y el retardo.",
+          "itens": [
+            {
+              "icone": "lista",
+              "t": "excita lo que se quiere medir"
+            }
+          ]
+        },
+        {
+          "icone": "arquivo",
+          "titulo": "Log",
+          "sub": "log.npz",
+          "detalhe": "Comando enviado + posición y velocidad medidas a 500 Hz, con ruido de 0,002 rad y 0,02 rad/s, como un encoder de verdad.",
+          "itens": [
+            {
+              "icone": "lista",
+              "t": "1.999 muestras"
+            }
+          ]
+        },
+        {
+          "icone": "cerebro",
+          "titulo": "Optimizador",
+          "sub": "mujoco.sysid",
+          "forte": true,
+          "detalhe": "Simula el mismo comando en el modelo nominal, lo compara con el log y ajusta los parámetros por mínimos cuadrados no lineales hasta que las curvas coincidan.",
+          "itens": [
+            {
+              "icone": "lista",
+              "t": "Parameter + ModelSequences"
+            }
+          ]
+        },
+        {
+          "icone": "check",
+          "titulo": "Parámetro",
+          "sub": "kp, kd",
+          "detalhe": "El resultado entra en el simulador (próximo entrenamiento) o en el comando del robot (compensación, clase 4). Verifica siempre con un ensayo que no se usó en el ajuste.",
+          "itens": [
+            {
+              "icone": "lista",
+              "t": "±10 % del valor oculto"
+            }
+          ]
+        }
+      ],
+      "legenda": "Cada ensayo identifica lo que excita. La pierna en el aire no dice nada sobre la fricción del pie."
+    },
+    {
+      "tipo": "passos",
+      "titulo": "Lo que el toolbox hace por ti",
+      "sub": "mujoco.sysid llegó en MuJoCo 3.5.0 (12/02/2026); aquí, 3.16.0 con el extra [sysid]. Haz clic en cada etapa.",
+      "passos": [
+        {
+          "titulo": "Parameter",
+          "sub": "lo que varía",
+          "texto": [
+            "Cada parámetro tiene valor nominal, rango y una función que escribe el valor en el MjSpec (el modelo editable). En el kit: kp y kd multiplican las ganancias del deploy.yaml en las cuatro articulaciones ensayadas."
+          ]
+        },
+        {
+          "titulo": "ModelSequences",
+          "sub": "modelo + datos",
+          "texto": [
+            "Junta el spec, el estado inicial, el comando (<code>TimeSeries.from_control_names</code>) y los sensores medidos (<code>TimeSeries.from_names</code>).",
+            "Trampa real: los sensores del modelo tienen que ser exactamente los del log. El G1 de Menagerie trae una IMU; el banco la quita."
+          ]
+        },
+        {
+          "titulo": "optimize",
+          "sub": "mínimos cuadrados",
+          "texto": [
+            "Recompila el modelo en cada intento, ejecuta el rollout y minimiza la diferencia. En CPU, de unos segundos a un minuto para dos parámetros."
+          ]
+        },
+        {
+          "titulo": "Revelar",
+          "sub": "solo en el ensayo",
+          "texto": [
+            "En el robot de verdad no existe un valor oculto para comparar. Aquí sí existe: <code>--revelar</code> abre el real.json y te dice si llegaste a ±10 %.",
+            "La verificación honesta en el robot es otro ensayo, que el ajuste no vio."
+          ]
+        }
+      ]
+    },
+    {
+      "tipo": "codigo",
+      "titulo": "Instalar el toolbox y recolectar el ensayo",
+      "sub": "El extra [sysid] trae scipy, matplotlib y plotly. El coletar.py graba el ensayo del \"robot real\" colgado.",
+      "blocos": [
+        {
+          "rot": "Terminal · mujoco[sysid]",
+          "icone": "terminal",
+          "conteudo": "F=${FTH:-$HOME/fth}; cd $F && . .venv/bin/activate\npip install -q \"mujoco[sysid]==3.16.0\"\npython3 -c \"from mujoco import sysid; print('mujoco.sysid ok:', sysid.optimize.__name__, sysid.Parameter.__name__)\""
+        },
+        {
+          "rot": "Terminal · ensayo de banco",
+          "icone": "terminal",
+          "conteudo": "F=${FTH:-$HOME/fth}; cd $F/sim2real && . $F/.venv/bin/activate\npython3 kit/coletar.py --saida $F/log.npz"
+        }
+      ],
+      "saida": {
+        "selo": "real",
+        "abas": [
+          {
+            "rot": "Salida capturada (19/10/2026)",
+            "html": "<pre>ensaio de bancada no mundo 'real': 1999 amostras em 4.0 s · 4 encoders + velocidades\n  enc_left_hip_pitch     amplitude medida  18.6°\n  enc_left_hip_roll      amplitude medida  29.6°\n  enc_left_knee          amplitude medida  50.0°\n  enc_left_ankle_pitch   amplitude medida  19.3°\ngravado: ~/fth/log.npz</pre><p>Cuatro articulaciones, 4 s, 1.999 muestras. La rodilla oscila 50° de punta a punta.</p>"
+          },
+          {
+            "rot": "Instalación",
+            "html": "<pre>mujoco.sysid ok: optimize Parameter</pre><p>Sin el extra, <code>mujoco.sysid</code> existe pero no tiene <code>optimize</code>: el módulo oculta lo que depende de scipy.</p>"
+          }
+        ]
+      }
+    },
+    {
+      "tipo": "codigo",
+      "titulo": "Identificar kp y kd",
+      "sub": "Parte del modelo nominal (kp = kd = 1,0 × el del deploy.yaml) y ajusta los dos.",
+      "blocos": [
+        {
+          "rot": "Terminal · sysid",
+          "icone": "terminal",
+          "conteudo": "F=${FTH:-$HOME/fth}; cd $F/sim2real && . $F/.venv/bin/activate\npython3 kit/sysid.py $F/log.npz --revelar; echo \"saída: $?\""
+        },
+        {
+          "rot": "Terminal · solo el kp (el error común)",
+          "icone": "terminal",
+          "conteudo": "F=${FTH:-$HOME/fth}; cd $F/sim2real && . $F/.venv/bin/activate\npython3 kit/sysid.py $F/log.npz --parametros kp --revelar | tail -4; echo \"saída: ${PIPESTATUS[0]}\""
+        },
+        {
+          "rot": "Terminal · el mismo ensayo en el mundo \"sim\" (E3)",
+          "icone": "terminal",
+          "conteudo": "F=${FTH:-$HOME/fth}; cd $F/sim2real && . $F/.venv/bin/activate\npython3 kit/coletar.py --mundo sim --saida $F/log-sim.npz | tail -1\npython3 kit/sysid.py $F/log-sim.npz | tail -4"
+        }
+      ],
+      "saida": {
+        "selo": "real",
+        "abas": [
+          {
+            "rot": "Salida capturada (19/10/2026)",
+            "html": "<pre>log: ~/fth/log.npz · 1999 amostras · sinais: 8 (posição e velocidade de 4 juntas)\nresíduo, modelo nominal:       0.034\nresíduo, modelo identificado:  0.014\nerro das posições na bancada, modelo nominal:       8.16° (RMS)\nerro das posições na bancada, modelo identificado:  3.14° (RMS)\nkp         nominal   1.00 → identificado   0.57\nkd         nominal   1.00 → identificado   1.08\nkp         escondido   0.60 · dentro de ±10 %: sim\nkd         escondido   1.00 · dentro de ±10 %: sim\nsaída: 0</pre><p>El kp vuelve cerca de 0,6 (el motor entrega el 60 % de la ganancia enviada) y el kd queda cerca de 1,0, porque el \"real\" no tocó el kd. El error de las posiciones cae a menos de la mitad.</p>"
+          },
+          {
+            "rot": "Error común: identificar solo el kp",
+            "html": "<pre>erro das posições na bancada, modelo nominal:       8.16° (RMS)\nerro das posições na bancada, modelo identificado:  3.55° (RMS)\nkp         nominal   1.00 → identificado   0.52\nkp         escondido   0.60 · dentro de ±10 %: não\nsaída: 1</pre><p>Con un solo parámetro, el optimizador pone en el kp todo lo que el modelo no explica, incluido el retardo de 20 ms que la clase 4 mide. El parámetro que falta en el modelo se filtra a los otros: dale al ajuste los grados de libertad que el ensayo excita.</p>"
+          },
+          {
+            "rot": "Ensayo en sim",
+            "html": "<pre>gravado: ~/fth/log-sim.npz\nerro das posições na bancada, modelo nominal:       0.11° (RMS)\nerro das posições na bancada, modelo identificado:  0.11° (RMS)\nkp         nominal   1.00 → identificado   1.00\nkd         nominal   1.00 → identificado   1.00</pre><p>En el mundo sin diferencia oculta, el ajuste no tiene nada que corregir: kp y kd se quedan en 1,00 y el error que sobra, 0,11°, es el ruido del encoder (0,002 rad).</p>"
+          }
+        ]
+      }
+    },
+    {
+      "tipo": "pratica",
+      "titulo": "Práctica",
+      "sub": "Medir el actuador del \"robot real\".",
+      "exercicios": [
+        {
+          "id": "e1",
+          "titulo": "E1 · Ensayo grabado",
+          "min": "5 min",
+          "texto": "Instala el toolbox y corre el ensayo de banco.",
+          "pronto": "<code>python3 kit/coletar.py --saida ~/fth/log.npz</code> termina en <code>gravado: ~/fth/log.npz</code>, con <code>enc_left_knee … 50.0°</code>."
+        },
+        {
+          "id": "e2",
+          "titulo": "E2 · kp y kd identificados",
+          "min": "5 min",
+          "texto": "Corre la identificación y compárala con el valor oculto.",
+          "pronto": "<code>python3 kit/sysid.py ~/fth/log.npz --revelar; echo \"saída: $?\"</code> → la línea del kp termina en <code>dentro de ±10 %: sim</code> (oculto 0.60) y <code>saída: 0</code>."
+        },
+        {
+          "id": "e3",
+          "titulo": "E3 · El ensayo que miente",
+          "min": "10 min",
+          "texto": "Corre el mismo ensayo en el mundo \"sim\" e identifica (último bloque). Después explica en dos líneas por qué solo el kp, en el log del \"real\", sale del ±10 %.",
+          "pronto": "en el bloque del sim, la línea del kp termina en <code>identificado   1.00</code>; escribiste que el retardo ausente en el modelo fue a parar al kp."
+        }
+      ]
+    },
+    {
+      "tipo": "quiz",
+      "titulo": "Prueba de la clase",
+      "sub": "La explicación aparece después de tu respuesta.",
+      "perguntas": [
+        {
+          "p": "¿Por qué el ensayo se hace con el robot colgado del pórtico?",
+          "opcoes": [
+            "Porque MuJoCo no simula el contacto del pie con el suelo en el banco.",
+            "Para aislar la pierna y el actuador, sin fricción del pie ni equilibrio.",
+            "Porque el sysid solo acepta articulaciones sin gravedad.",
+            "Para que el robot camine más rápido durante el ensayo."
+          ],
+          "certa": 1,
+          "explica": "Sin contacto, lo que mueve la pierna es el actuador contra la inercia y la gravedad. Eso es lo que se quiere medir, y sin riesgo de caída.",
+          "ref": "diagrama",
+          "cert": true
+        },
+        {
+          "p": "Al identificar solo el kp, sale 0,52; con kp y kd juntos, cerca de 0,6. ¿Qué pasó?",
+          "opcoes": [
+            "El kd oculto también era 0,52, y el ajuste intercambió los dos.",
+            "El ruido del encoder siempre empuja el kp hacia abajo.",
+            "El modelo sin retardo echó al kp lo que no lograba explicar.",
+            "El toolbox tiene un error conocido cuando ajusta un parámetro solo."
+          ],
+          "certa": 2,
+          "explica": "Si falta el retardo en el modelo, el ajuste compensa con lo que puede mover. Con el kd libre, el kp queda más limpio. La identificabilidad depende del modelo, no solo de los datos.",
+          "ref": "codigo"
+        },
+        {
+          "p": "En el robot real, ¿cómo comprobar un parámetro identificado?",
+          "opcoes": [
+            "Abriendo el archivo de parámetros ocultos del fabricante.",
+            "Repitiendo el mismo ensayo usado en el ajuste y viendo caer el error.",
+            "Comparando con el kp del deploy.yaml, que es el valor correcto.",
+            "Con un ensayo nuevo, que el ajuste no vio, y el error de ese ensayo."
+          ],
+          "certa": 3,
+          "explica": "El mismo ensayo siempre mejora después del ajuste. Solo un ensayo distinto (otra frecuencia, otra articulación) muestra si el parámetro generaliza.",
+          "ref": "passos"
+        }
+      ]
+    },
+    {
+      "tipo": "resumo",
+      "titulo": "En tres frases",
+      "itens": [
+        {
+          "t": "Ensayo",
+          "texto": "Robot colgado, barrido de 0,5 a 3 Hz, encoders con ruido: 1.999 muestras en 4 s."
+        },
+        {
+          "t": "Toolbox",
+          "texto": "mujoco.sysid ajusta kp y kd y devuelve el kp a ±10 % del oculto."
+        },
+        {
+          "t": "Cuidado",
+          "texto": "Lo que falta en el modelo se filtra a los parámetros que dejaste libres."
+        }
+      ]
+    },
+    {
+      "tipo": "links",
+      "titulo": "Para ir más allá",
+      "links": [
+        {
+          "t": "MuJoCo: changelog (3.5.0 trae el toolbox de identificación y los retardos)",
+          "href": "https://mujoco.readthedocs.io/en/stable/changelog.html",
+          "icone": "arquivo"
+        },
+        {
+          "t": "MuJoCo: MjSpec, el modelo editable que el sysid modifica",
+          "href": "https://mujoco.readthedocs.io/en/stable/programming/modeledit.html",
+          "icone": "arquivo"
+        },
+        {
+          "t": "MuJoCo Menagerie: el G1 usado en el banco",
+          "href": "https://github.com/google-deepmind/mujoco_menagerie/tree/main/unitree_g1",
+          "icone": "git"
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,297 @@
+{
+  "slug": "atuador",
+  "num": 4,
+  "menu": "Actuator",
+  "titulo": "The real actuator: latency, torque limit and actuator network",
+  "titulo_curto": "Actuator latency and limit",
+  "minutos": 16,
+  "lead": "Between the policy deciding and the motor turning there is a network, the controller loop and the motor PD. In this lesson you measure the \"real robot\" latency (delay) with a step on the knee, count the falls that 20 and 40 ms cause under a push, and compensate the kp identified in lesson 3.",
+  "objetivo": "measure the actuator latency on the bench, count the falls it causes under a push, and compensate kp in the command.",
+  "competencias": [
+    "medir-atraso-por-degrau",
+    "modelar-atraso-no-mujoco",
+    "compensar-ganho-no-deploy"
+  ],
+  "aprende": [
+    {
+      "icone": "relogio",
+      "t": "The layers of time: policy at 50 Hz, network, PD at 500 Hz–1 kHz"
+    },
+    {
+      "icone": "chip",
+      "t": "Native latency in MuJoCo 3.5+: the actuator's delay attribute"
+    },
+    {
+      "icone": "grafico",
+      "t": "Falls under a push with 0, 20, and 40 ms of latency"
+    },
+    {
+      "icone": "check",
+      "t": "Compensate the identified kp and watch the \"real\" robot walk"
+    }
+  ],
+  "hero_alt": "A robot rotary actuator on a bench test with an inertia disc and a torque sensor, with a blurred oscilloscope in the background.",
+  "secoes": [
+    {
+      "tipo": "diagrama",
+      "titulo": "The path from command to torque",
+      "sub": "Click each block.",
+      "nos": [
+        {
+          "icone": "cerebro",
+          "titulo": "Policy",
+          "sub": "50 Hz",
+          "detalhe": "The G1 policy decides every 20 ms (the step_dt in deploy.yaml): it reads the state and returns 29 position targets.",
+          "itens": [
+            {
+              "icone": "lista",
+              "t": "position target"
+            }
+          ]
+        },
+        {
+          "icone": "relogio",
+          "titulo": "Latency",
+          "sub": "network, queue",
+          "forte": true,
+          "detalhe": "Time between the state being read and the target reaching the motor: inference, network, controller queue. In MuJoCo 3.5+, the actuator stores the last commands (history) and applies the one from N ms ago.",
+          "itens": [
+            {
+              "icone": "lista",
+              "t": "delay + nsample on the actuator"
+            }
+          ]
+        },
+        {
+          "icone": "chip",
+          "titulo": "PD",
+          "sub": "500 Hz–1 kHz",
+          "detalhe": "On the robot, the PD runs in the motor driver, much faster than the policy: torque = kp × (target − q) − kd × velocity.",
+          "itens": [
+            {
+              "icone": "lista",
+              "t": "kp, kd per joint"
+            }
+          ]
+        },
+        {
+          "icone": "x",
+          "titulo": "Limit",
+          "sub": "max torque",
+          "detalhe": "Each joint has a maximum torque (in the Menagerie MJCF, 139 N·m at the knee and 5 N·m at the wrist pitch and yaw). A command above that is clipped: the joint does not do what the policy asked.",
+          "itens": [
+            {
+              "icone": "lista",
+              "t": "saturation"
+            }
+          ]
+        }
+      ],
+      "legenda": "Latency and saturation are invisible in a calm walk and show up under a push."
+    },
+    {
+      "tipo": "passos",
+      "titulo": "Three ways to model the actuator",
+      "sub": "From the simplest to what you use when the simple one is not enough.",
+      "passos": [
+        {
+          "titulo": "Ideal PD",
+          "sub": "the default",
+          "texto": [
+            "What MuJoCo and Isaac Lab do without you asking: the torque comes out instantly, exactly equal to the PD. It is the \"sim\" from lesson 1."
+          ]
+        },
+        {
+          "titulo": "PD + latency + limit",
+          "sub": "this course",
+          "texto": [
+            "Adds the measured latency and the declared torque limit. MuJoCo 3.5+ handles the latency by itself (<code>delay</code> and <code>nsample</code> on the actuator); the kit fills the history with the first command so it does not start from a zero target.",
+            "With sysid (lesson 3) and randomization around the measured value, this is what many projects do."
+          ]
+        },
+        {
+          "titulo": "Actuator network",
+          "sub": "learned",
+          "texto": [
+            "A small neural network learns, from real motor data, the relationship between command, position history, and delivered torque, and enters the simulator in place of the ideal PD.",
+            "Worth it when the actuator has effects that a single parameter does not capture. It requires a motor test bench; this course only mentions it."
+          ]
+        },
+        {
+          "titulo": "Gain per motor",
+          "sub": "at deploy",
+          "texto": [
+            "NVIDIA's GR00T-WholeBodyControl stack added, on 08/31/2026, per-motor kp and kd scaling against stumbling in the SONIC policy: sim-to-real is also fine-tuning the PD at deploy time.",
+            "E3 in this lesson does the minimal version: it multiplies the commanded kp by the inverse of the identified one."
+          ]
+        }
+      ]
+    },
+    {
+      "tipo": "codigo",
+      "titulo": "Measure the latency and count the falls",
+      "sub": "--medir gives a 0.3 rad step at the knee with the robot hanging. --ms runs the walk with 6 pushes (120, 150, and 180 N for 0.2 s, forward and sideways) per latency.",
+      "blocos": [
+        {
+          "rot": "Terminal · measure the latency on the bench",
+          "icone": "terminal",
+          "conteudo": "F=${FTH:-$HOME/fth}; cd $F/sim2real && . $F/.venv/bin/activate\npython3 kit/atraso.py --medir"
+        },
+        {
+          "rot": "Terminal · falls by latency",
+          "icone": "terminal",
+          "conteudo": "F=${FTH:-$HOME/fth}; cd $F/sim2real && . $F/.venv/bin/activate\npython3 kit/atraso.py --ms 0 20 40"
+        }
+      ],
+      "saida": {
+        "selo": "real",
+        "abas": [
+          {
+            "rot": "Captured output (10/19/2026)",
+            "html": "<pre>degrau de 0,3 rad no joelho esquerdo, robô pendurado: tempo até o encoder mexer 0,005 rad\n  sim:               8 ms\n  real:             30 ms\natraso medido (real − sim): 22 ms</pre><p>The \"real\" takes 22 ms longer than the sim to move the knee: the 20 ms of hidden latency plus a bit from the softer kp, which also slows the response.</p>"
+          },
+          {
+            "rot": "Falls from latency",
+            "html": "<pre>atraso   quedas em 6 empurrões   (120/150/180 N, frente e lado, 0,2 s, t = 3 s)\n   0 ms  2/6   . . . . x x\n  20 ms  3/6   x x x . . .\n  40 ms  6/6   x x x x x x\n(x = caiu, . = ficou de pé; ordem: 120, 150, 180 N para a frente e depois para o lado)</pre><p>At 40 ms, it falls in all six. At 0 ms, it still falls in two side pushes; at 20 ms, in the three front ones.</p>"
+          },
+          {
+            "rot": "Common mistake: reading the pattern",
+            "html": "<p>Don't conclude that \"20 ms is better from the side than 0 ms.\" These are six trials with one seed: the fall pattern wobbles; what you read is the count rising with latency (2, 3, 6). To claim more, add more pushes and directions.</p>"
+          }
+        ]
+      }
+    },
+    {
+      "tipo": "codigo",
+      "titulo": "Compensate kp in the command",
+      "sub": "Lesson 3 identified kp ≈ 0.57 of the commanded value. Sending 1/0.57 ≈ 1.75 times the kp, the \"real\" motor delivers close to what the policy expects.",
+      "blocos": [
+        {
+          "rot": "Terminal · compensated kp",
+          "icone": "terminal",
+          "conteudo": "F=${FTH:-$HOME/fth}; cd $F/sim2real && . $F/.venv/bin/activate\npython3 kit/dois_mundos.py --kp-comando 1.75; echo \"saída: $?\""
+        }
+      ],
+      "saida": {
+        "selo": "real",
+        "abas": [
+          {
+            "rot": "Captured output (10/19/2026)",
+            "html": "<pre>política: unitree_rl_lab G1 29 GDL velocity v0 (ONNX, 480 entradas) · comando 0.50 m/s · 10 s\nsim                          queda: não · andou 5.1 m em 10 s (vel. 0.51 m/s; pedida 0.50)\nreal simulado                queda: não · andou 4.5 m em 10 s (vel. 0.45 m/s; pedida 0.50)\nsaída: 0</pre><p>The \"simulated real\" now walks 4.5 m and doesn't fall (exit 0). The sim, with the stiffer kp, keeps walking. The latency, the mass, and the friction are still there: the policy handles it, because the biggest difference was corrected.</p>"
+          }
+        ]
+      }
+    },
+    {
+      "tipo": "pratica",
+      "titulo": "Practice",
+      "sub": "Actuator timing and torque.",
+      "exercicios": [
+        {
+          "id": "e1",
+          "titulo": "E1 · Measured latency",
+          "min": "3 min",
+          "texto": "Apply the step to the knee in both worlds.",
+          "pronto": "<code>python3 kit/atraso.py --medir</code> → <code>atraso medido (real − sim): 22 ms</code>."
+        },
+        {
+          "id": "e2",
+          "titulo": "E2 · Falls from latency",
+          "min": "5 min",
+          "texto": "Run the walk with pushes at 0, 20, and 40 ms.",
+          "pronto": "<code>python3 kit/atraso.py --ms 0 20 40</code> → <code>0 ms  2/6</code>, <code>20 ms  3/6</code>, <code>40 ms  6/6</code>."
+        },
+        {
+          "id": "e3",
+          "titulo": "E3 · Compensate and walk",
+          "min": "5 min",
+          "texto": "Use the kp you identified in lesson 3 (1 divided by it) and run both worlds again.",
+          "pronto": "<code>python3 kit/dois_mundos.py --kp-comando 1.75; echo \"saída: $?\"</code> → <code>real simulado … queda: não</code> and <code>saída: 0</code>."
+        }
+      ]
+    },
+    {
+      "tipo": "quiz",
+      "titulo": "Lesson quiz",
+      "sub": "The explanation appears after your answer.",
+      "perguntas": [
+        {
+          "p": "With no push, the policy walks with the \"real\" robot's 20 ms of latency (lesson 1). With a push, 40 ms knocks it down in 6 of 6. What does this teach?",
+          "opcoes": [
+            "That latency only matters when the robot is standing still.",
+            "That the push is what measures the margin that latency takes away.",
+            "That the policy was trained with exactly 40 ms of fixed latency.",
+            "That MuJoCo ignores latency during normal walking."
+          ],
+          "certa": 1,
+          "explica": "In a calm walk, the policy corrects with room to spare. A push demands a fast reaction, and that's where every millisecond counts. A robustness test needs a disturbance.",
+          "ref": "codigo",
+          "cert": true
+        },
+        {
+          "p": "MuJoCo 3.5+ models latency in the actuator itself. What does the kit do in addition at startup?",
+          "opcoes": [
+            "It fills the command history with the first target.",
+            "It turns off latency for the first 20 ms of simulation.",
+            "It raises kp to compensate for the latency.",
+            "It swaps the integrator so latency doesn't accumulate."
+          ],
+          "certa": 0,
+          "explica": "The history starts zeroed: without filling it, the first N ms send a zero target to the joints, a jolt that doesn't exist on the robot.",
+          "ref": "passos"
+        },
+        {
+          "p": "When is it worth training an actuator network instead of PD with latency?",
+          "opcoes": [
+            "Whenever the robot has more than 20 joints.",
+            "When the simulator has no position actuator.",
+            "When the actuator has effects that a few parameters can't capture.",
+            "When no measured data from the real motor is available yet."
+          ],
+          "certa": 2,
+          "explica": "The network learns the command → torque relationship from motor data. It needs that data; without it, PD with latency and sysid is the way.",
+          "ref": "passos"
+        }
+      ]
+    },
+    {
+      "tipo": "resumo",
+      "titulo": "In three sentences",
+      "itens": [
+        {
+          "t": "Measurement",
+          "texto": "A step on the knee with the robot hanging measures the latency: 22 ms."
+        },
+        {
+          "t": "Effect",
+          "texto": "Under a push, falls rise from 2/6 (0 ms) to 6/6 (40 ms)."
+        },
+        {
+          "t": "Fix",
+          "texto": "Sending kp divided by the identified value makes the \"simulated real\" walk without falling."
+        }
+      ]
+    },
+    {
+      "tipo": "links",
+      "titulo": "Going further",
+      "links": [
+        {
+          "t": "MuJoCo: actuators (delay, nsample, interp) in the XML reference",
+          "href": "https://mujoco.readthedocs.io/en/stable/XMLreference.html",
+          "icone": "arquivo"
+        },
+        {
+          "t": "GR00T-WholeBodyControl (SONIC): per-motor gains in the deploy",
+          "href": "https://github.com/NVlabs/GR00T-WholeBodyControl",
+          "icone": "git"
+        },
+        {
+          "t": "unitree_rl_lab: kp and kd of the G1 in deploy.yaml",
+          "href": "https://github.com/unitreerobotics/unitree_rl_lab",
+          "icone": "git"
+        }
+      ]
+    }
+  ]
+}

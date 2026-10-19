@@ -27,7 +27,7 @@
     },
     {
       "icone": "lupa",
-      "t": "Real-to-sim para humanoide em 2026: ainda demo de fornecedor"
+      "t": "Real-to-sim para humanoide em 2026: demo de fornecedor, relatada"
     }
   ],
   "hero_alt": "Mesa real com um cubo vermelho, uma lata azul, uma bola de tênis e uma bandeja, fotografada por um celular num tripé, com o gêmeo simulado num monitor ao lado.",
@@ -174,7 +174,7 @@
           "titulo": "E1 · Gêmeo desenhado",
           "min": "5 min",
           "texto": "Rode o bloco do gêmeo e abra o gemeo.png.",
-          "pronto": "<code>python3 kit/gemeo.py exemplos/mesa-foto/cena.json ~/fth/gemeo.png</code> → <code>objetos na cena: 4</code> e <code>gemeo.png: 1280×720 px</code>."
+          "pronto": "<code>python3 ~/fth/sim2real/kit/gemeo.py exemplos/mesa-foto/cena.json ~/fth/gemeo.png</code> (na pasta do robotica-real2sim) → <code>objetos na cena: 4</code> e <code>gemeo.png: 1280×720 px</code>."
         },
         {
           "id": "e2",
@@ -215,7 +215,7 @@
           "opcoes": [
             "Rotina em todo humanoide comercial.",
             "Exigido por norma antes de ligar o robô.",
-            "Demo de fornecedor, sem sim-to-real medido em paper.",
+            "Demo de fornecedor (relatado), sem sim-to-real medido em paper.",
             "Impossível, porque splatting não roda em GPU."
           ],
           "certa": 2,
@@ -250,7 +250,7 @@
         },
         {
           "t": "Humanoide",
-          "texto": "Gêmeo por splatting ainda é demo de fornecedor; medir o lugar já é rotina."
+          "texto": "Gêmeo por splatting para humanoide ainda é demo de fornecedor (relatado); medir o lugar já é rotina."
         }
       ]
     },

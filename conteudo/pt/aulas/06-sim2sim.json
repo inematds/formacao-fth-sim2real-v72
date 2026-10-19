@@ -106,7 +106,7 @@
           "titulo": "Passo e integrador",
           "sub": "aviso",
           "texto": [
-            "O unitree_mujoco vem com passo de 5 ms e integrador de Euler. Com o kd = 10 do punho (limite de 5 N·m), o PD oscila e o braço fica no limite de torque o tempo todo. A marcha não sofre; o portão dá aviso, não reprova.",
+            "O unitree_mujoco vem com passo de 5 ms e integrador de Euler. Com o kd = 10 do punho (limite de 5 N·m no pitch e no yaw), o PD oscila e o braço fica no limite de torque o tempo todo. A marcha não sofre; o portão dá aviso, não reprova.",
             "Com 1–2 ms, o aviso some. É do simulador, não da política: confira antes de mexer no treino."
           ]
         },
@@ -205,7 +205,7 @@
           "titulo": "E2 · Portão com DDS",
           "min": "3 min",
           "texto": "Rode as três etapas com passo de 1 ms.",
-          "pronto": "<code>python3 kit/portao_sim2sim.py --passo 0.001 --dds; echo \"saída: $?\"</code> → <code>PORTÃO: passou (3 de 3 etapas)</code> e <code>saída: 0</code>."
+          "pronto": "<code>python3 kit/portao_sim2sim.py --passo 0.001 --dds 2&gt;/dev/null; echo \"saída: $?\"</code> → <code>PORTÃO: passou (3 de 3 etapas)</code> e <code>saída: 0</code>."
         },
         {
           "id": "e3",

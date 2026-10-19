@@ -1,0 +1,322 @@
+{
+  "slug": "randomizacao",
+  "num": 2,
+  "menu": "Randomización",
+  "titulo": "Domain randomization: entrenar para el mundo variado",
+  "titulo_curto": "Domain randomization",
+  "minutos": 16,
+  "lead": "Si el simulador nunca acierta con el mundo, se entrena la política en muchos mundos sorteados. En esta clase lees los rangos que la propia Unitree randomizó en el entrenamiento de la política, sorteas 20 mundos dentro de ellos y 20 fuera, y mides la diferencia. La política aguanta lo que vio en el entrenamiento y falla justo después.",
+  "objetivo": "leer los rangos de randomización de un entrenamiento real y medir la supervivencia de la política dentro y fuera de ellos.",
+  "competencias": [
+    "ler-eventos-de-randomizacao",
+    "medir-cobertura-da-randomizacao",
+    "decidir-o-que-randomizar"
+  ],
+  "aprende": [
+    {
+      "icone": "arquivo",
+      "t": "Dónde vive la randomización en un proyecto real: los eventos de Isaac Lab"
+    },
+    {
+      "icone": "lista",
+      "t": "Los rangos de la política del G1: fricción, masa y empujón (y lo que quedó fuera)"
+    },
+    {
+      "icone": "grafico",
+      "t": "20/20 dentro del rango, 8/20 fuera de él"
+    },
+    {
+      "icone": "lupa",
+      "t": "Por qué randomizar todo al máximo tampoco sirve"
+    }
+  ],
+  "hero_alt": "Pared de monitores en un laboratorio oscuro, cada uno con un robot humanoide simulado caminando sobre un piso distinto.",
+  "secoes": [
+    {
+      "tipo": "diagrama",
+      "titulo": "Del entrenamiento randomizado a la prueba fuera del rango",
+      "sub": "Haz clic en cada bloque.",
+      "nos": [
+        {
+          "icone": "arquivo",
+          "titulo": "Rangos",
+          "sub": "en el entrenamiento",
+          "detalhe": "En cada robot simulado, el entrenamiento sortea parámetros dentro de rangos: fricción, masa, empujones, ruido. En la tarea Unitree-G1-29dof-Velocity, esto es la clase EventCfg de velocity_env_cfg.py.",
+          "itens": [
+            {
+              "icone": "lista",
+              "t": "startup, reset, interval"
+            }
+          ]
+        },
+        {
+          "icone": "cerebro",
+          "titulo": "Política",
+          "sub": "robusta",
+          "detalhe": "Como nunca vio el mismo mundo dos veces, la política aprende a no depender del valor exacto. El costo: entrenamiento más largo y, a veces, una marcha más conservadora.",
+          "itens": [
+            {
+              "icone": "lista",
+              "t": "no memoriza un mundo"
+            }
+          ]
+        },
+        {
+          "icone": "camadas",
+          "titulo": "Sorteo",
+          "sub": "20 mundos",
+          "forte": true,
+          "detalhe": "Para evaluar, sortea mundos con semilla fija y cuenta cuántos aguanta la política. Dentro del rango del entrenamiento, lo esperable es casi todos; fuera, ahí vive el riesgo.",
+          "itens": [
+            {
+              "icone": "lista",
+              "t": "semilla fija: mismo sorteo"
+            }
+          ]
+        },
+        {
+          "icone": "check",
+          "titulo": "Marcador",
+          "sub": "X/20",
+          "detalhe": "Supervivencia = 10 s caminando sin que la pelvis baje de 0,5 m. Se cuenta, no es un valor de recompensa: es lo que se puede comparar entre rangos y entre políticas.",
+          "itens": [
+            {
+              "icone": "lista",
+              "t": "dentro × fuera"
+            }
+          ]
+        }
+      ],
+      "legenda": "Randomizar no es \"cuanto más, mejor\": es cubrir el mundo donde el robot va a caminar."
+    },
+    {
+      "tipo": "passos",
+      "titulo": "Lo que la Unitree randomizó (y lo que no)",
+      "sub": "Leído en velocity_env_cfg.py, unitree_rl_lab 4960b84 (19/11/2025). Haz clic en cada elemento.",
+      "passos": [
+        {
+          "titulo": "Fricción",
+          "sub": "0,3 a 1,0",
+          "texto": [
+            "Evento <code>physics_material</code>, al inicio (startup): fricción estática y dinámica entre 0,3 y 1,0 en todos los cuerpos del robot.",
+            "En el sorteo de fuera de esta clase, los mundos con fricción cercana a 0,2 (el 2 y el 5) se caen; el piso del rango de entrenamiento es el piso que la política vio."
+          ]
+        },
+        {
+          "titulo": "Masa",
+          "sub": "−1 a +3 kg",
+          "texto": [
+            "Evento <code>add_base_mass</code>: suma de −1 a +3 kg al <code>torso_link</code>. Una carga real (batería extra, cámara, pinza) puede superar eso."
+          ]
+        },
+        {
+          "titulo": "Empujón",
+          "sub": "±0,5 m/s",
+          "texto": [
+            "Evento <code>push_robot</code>, cada 5 s: cambia la velocidad de la base hasta ±0,5 m/s en x y en y. El kit aplica el equivalente como una fuerza de 0,1 s en el tronco.",
+            "También hay ruido en las observaciones (velocidad angular, gravedad, articulaciones)."
+          ]
+        },
+        {
+          "titulo": "Fuera",
+          "sub": "kp y retardo",
+          "texto": [
+            "No hay randomización de kp, kd ni de retardo en esta tarea. En la clase 1, el kp solo ya cambió la marcha (0,75 m/s pidiendo 0,50); el retardo pesa bajo empujón (clase 4).",
+            "Otros proyectos randomizan ganancias y retardo (latencia); lo que importa es saber qué cubrió tu entrenamiento antes de encender el robot."
+          ]
+        }
+      ]
+    },
+    {
+      "tipo": "codigo",
+      "titulo": "Los dos rangos del kit",
+      "sub": "treino.json copia los rangos de Unitree; fora.json va un poco más allá y agrega kp y retardo (latencia).",
+      "blocos": [
+        {
+          "rot": "Archivo · kit/mundos/treino.json",
+          "icone": "arquivo",
+          "conteudo": "{\n  \"nome\": \"treino\",\n  \"descricao\": \"as faixas que a própria tarefa Unitree-G1-29dof-Velocity randomiza no treino (unitree_rl_lab 4960b84, velocity_env_cfg.py, classe EventCfg)\",\n  \"atrito\": [0.3, 1.0],\n  \"massa\": [-1.0, 3.0],\n  \"empurrao_vel\": [-0.5, 0.5]\n}"
+        },
+        {
+          "rot": "Archivo · kit/mundos/fora.json",
+          "icone": "arquivo",
+          "conteudo": "{\n  \"nome\": \"fora\",\n  \"descricao\": \"além do treino: atrito um pouco abaixo de 0.3, carga maior e kp e atraso, que o treino não randomizou\",\n  \"atrito\": [\n    0.2,\n    0.6\n  ],\n  \"massa\": [\n    2.0,\n    8.0\n  ],\n  \"kp\": [\n    0.6,\n    1.0\n  ],\n  \"atraso_ms\": [\n    0,\n    30\n  ],\n  \"empurrao_vel\": [\n    -0.5,\n    0.5\n  ]\n}"
+        }
+      ]
+    },
+    {
+      "tipo": "codigo",
+      "titulo": "Sortear y contar",
+      "sub": "randomizar.py sortea 20 mundos por rango con semilla fija (7) y corre 10 s caminando en cada uno, con el empujón en t = 3 s.",
+      "blocos": [
+        {
+          "rot": "Terminal · dentro y fuera del rango",
+          "icone": "terminal",
+          "conteudo": "F=${FTH:-$HOME/fth}; cd $F/sim2real && . $F/.venv/bin/activate\npython3 kit/randomizar.py --seeds 20"
+        },
+        {
+          "rot": "Terminal · los primeros mundos de fora, uno por uno",
+          "icone": "terminal",
+          "conteudo": "F=${FTH:-$HOME/fth}; cd $F/sim2real && . $F/.venv/bin/activate\npython3 kit/randomizar.py --seeds 20 --faixa fora --detalhe | head -6"
+        }
+      ],
+      "saida": {
+        "selo": "real",
+        "abas": [
+          {
+            "rot": "Salida capturada (19/10/2026)",
+            "html": "<pre>faixa treino  sobreviveu: 20/20\nfaixa fora    sobreviveu: 8/20</pre><p>Dentro del rango del entrenamiento, 20 de 20. Fuera, 8 de 20.</p>"
+          },
+          {
+            "rot": "Error común: culpar a un solo parámetro",
+            "html": "<pre>   1 atrito=0.45 massa=7.38 kp=0.91 atraso_ms=6 empurrão 172 N → de pé\n   2 atrito=0.20 massa=6.93 kp=0.92 atraso_ms=14 empurrão 119 N → caiu\n   3 atrito=0.30 massa=4.67 kp=0.80 atraso_ms=16 empurrão 219 N → caiu\n   4 atrito=0.45 massa=7.93 kp=0.69 atraso_ms=4 empurrão 194 N → caiu\n   5 atrito=0.21 massa=5.09 kp=0.79 atraso_ms=28 empurrão 50 N → caiu\n   6 atrito=0.40 massa=3.49 kp=0.60 atraso_ms=6 empurrão 131 N → caiu</pre><p>El mundo 1 tiene una masa de 7,4 kg y queda de pie; el 4, con 7,9 kg, se cae; el 6 tiene fricción 0,40 y se cae. Ningún parámetro aislado explica el marcador: fuera del rango, es la combinación. Mirar un solo mundo y culpar a un parámetro es el error común; compara marcadores y, para afirmar una causa, varía un parámetro a la vez (E2).</p>"
+          }
+        ]
+      }
+    },
+    {
+      "tipo": "pratica",
+      "titulo": "Práctica",
+      "sub": "Medir lo que cubrió el entrenamiento.",
+      "exercicios": [
+        {
+          "id": "e1",
+          "titulo": "E1 · Dentro × fuera",
+          "min": "3 min",
+          "texto": "Corre el sorteo de los dos rangos.",
+          "pronto": "<code>python3 kit/randomizar.py --seeds 20</code> → <code>faixa treino  sobreviveu: 20/20</code> y <code>faixa fora    sobreviveu: 8/20</code>."
+        },
+        {
+          "id": "e2",
+          "titulo": "E2 · Solo el kp fuera",
+          "min": "5 min",
+          "texto": "Escribe un rango igual al del entrenamiento, pero con kp entre 0,5 y 0,8 (el bloque de abajo ya lo hace), y córrelo.",
+          "pronto": "<code>python3 kit/randomizar.py --seeds 20 --faixa ~/fth/so-kp.json</code> → <code>faixa so-kp   sobreviveu: 11/20</code>."
+        },
+        {
+          "id": "e3",
+          "titulo": "E3 · Qué randomizarías",
+          "min": "10 min",
+          "texto": "Para un G1 que va a caminar en un piso de fábrica con una cámara de 2 kg en la cabeza, escribe en tres líneas qué agregarías a los rangos del entrenamiento y por qué.",
+          "pronto": "tres líneas, cada una con parámetro, rango y el motivo medido (p. ej.: \"kp 0,5–1,0: solo kp fuera dio 11/20\")."
+        }
+      ]
+    },
+    {
+      "tipo": "codigo",
+      "titulo": "El rango del E2",
+      "sub": "Los mismos rangos del entrenamiento, más el kp entre 0,5 y 0,8.",
+      "blocos": [
+        {
+          "rot": "Terminal · solo el kp fuera del rango",
+          "icone": "terminal",
+          "conteudo": "F=${FTH:-$HOME/fth}; cd $F/sim2real && . $F/.venv/bin/activate\ncat > $F/so-kp.json <<'J'\n{\"nome\": \"so-kp\", \"atrito\": [0.3, 1.0], \"massa\": [-1.0, 3.0], \"kp\": [0.5, 0.8], \"empurrao_vel\": [-0.5, 0.5]}\nJ\npython3 kit/randomizar.py --seeds 20 --faixa $F/so-kp.json"
+        }
+      ],
+      "saida": {
+        "selo": "real",
+        "abas": [
+          {
+            "rot": "Salida capturada (19/10/2026)",
+            "html": "<pre>faixa so-kp   sobreviveu: 11/20</pre><p>Solo agregar el kp, que el entrenamiento no varió, derriba 9 de 20.</p>"
+          }
+        ]
+      }
+    },
+    {
+      "tipo": "quiz",
+      "titulo": "Prueba de la clase",
+      "sub": "La explicación aparece después de tu respuesta.",
+      "perguntas": [
+        {
+          "p": "La policy sobrevivió 20/20 dentro de los rangos del entrenamiento y 8/20 fuera. ¿Qué mide esto?",
+          "opcoes": [
+            "Que la policy fue mal entrenada y necesita más iteraciones.",
+            "Que el simulador es distinto en cada sorteo y no sirve para evaluar.",
+            "Que el empujón de 0,5 m/s es demasiado fuerte para cualquier humanoide.",
+            "La cobertura de la randomización: aguanta lo que vio en el entrenamiento."
+          ],
+          "certa": 3,
+          "explica": "La randomización compra robustez dentro del rango. Fuera de él no hay garantía; por eso se lee qué cubrió el entrenamiento antes de ir al robot.",
+          "ref": "diagrama",
+          "cert": true
+        },
+        {
+          "p": "En esta policy, ¿qué no randomiza la tarea de unitree_rl_lab?",
+          "opcoes": [
+            "La fricción del pie con el suelo en todos los cuerpos.",
+            "El kp, el kd y el retardo (latencia) del actuador.",
+            "La masa sumada al torso.",
+            "Los empujones cada 5 s."
+          ],
+          "certa": 1,
+          "explica": "Fricción, masa y empujón están en la EventCfg. Las ganancias y el retardo no están; el kp solo ya cambió la marcha en la clase 1, y el retardo tumba bajo empujón en la clase 4.",
+          "ref": "passos"
+        },
+        {
+          "p": "¿Por qué no randomizar todo en el rango más amplio posible?",
+          "opcoes": [
+            "Porque la política se vuelve conservadora y el entrenamiento más difícil.",
+            "Porque MuJoCo no acepta más de cuatro parámetros variados.",
+            "Porque randomizar hace que la política olvide el comando de velocidad.",
+            "Porque el robot real no tiene fricción ni retardo variables."
+          ],
+          "certa": 0,
+          "explica": "Un rango demasiado amplio cuesta desempeño y tiempo de entrenamiento. La regla es cubrir el mundo donde el robot va a trabajar, con margen, y medir.",
+          "ref": "diagrama"
+        },
+        {
+          "p": "¿Por qué randomizar.py usa una semilla fija (7)?",
+          "opcoes": [
+            "Para que el sorteo sea más difícil en cada ronda.",
+            "Porque ONNX solo corre con la semilla 7.",
+            "Para que el mismo sorteo dé el mismo marcador en cada ronda.",
+            "Para que los mundos sorteados fuera del rango caigan dentro de él."
+          ],
+          "certa": 2,
+          "explica": "Con semilla fija, 20/20 y 8/20 se repiten en esta pila (capturado dos veces) y se pueden comparar dos políticas en el mismo conjunto de mundos. En otra CPU, el último decimal puede variar.",
+          "ref": "codigo"
+        }
+      ]
+    },
+    {
+      "tipo": "resumo",
+      "titulo": "En tres frases",
+      "itens": [
+        {
+          "t": "Rangos",
+          "texto": "El entrenamiento del G1 randomiza fricción 0,3–1,0, masa −1 a +3 kg y empujones; no randomiza kp ni retardo."
+        },
+        {
+          "t": "Marcador",
+          "texto": "20/20 dentro del rango, 8/20 fuera, 11/20 con solo el kp fuera."
+        },
+        {
+          "t": "Regla",
+          "texto": "Lee lo que cubrió el entrenamiento y mide fuera de él antes de llegar al robot."
+        }
+      ]
+    },
+    {
+      "tipo": "links",
+      "titulo": "Para ir más allá",
+      "links": [
+        {
+          "t": "velocity_env_cfg.py del G1 (EventCfg)",
+          "href": "https://github.com/unitreerobotics/unitree_rl_lab/blob/main/source/unitree_rl_lab/unitree_rl_lab/tasks/locomotion/robots/g1/29dof/velocity_env_cfg.py",
+          "icone": "git"
+        },
+        {
+          "t": "mjlab: la misma API de eventos de Isaac Lab sobre MuJoCo Warp (GPU)",
+          "href": "https://github.com/mujocolab/mjlab",
+          "icone": "git"
+        },
+        {
+          "t": "Curso anterior: entrenar la política de marcha",
+          "href": "https://inematds.github.io/formacao-fth-locomocao-v72/es/",
+          "icone": "robo"
+        }
+      ]
+    }
+  ]
+}

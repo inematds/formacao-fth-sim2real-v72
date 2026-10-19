@@ -5,7 +5,7 @@
   "titulo": "O atuador de verdade: atraso, limite de torque e actuator network",
   "titulo_curto": "Atraso e limite do atuador",
   "minutos": 16,
-  "lead": "Entre a política decidir e o motor girar há uma fila: rede, laço do controlador, PD do motor. Nesta aula você mede o atraso do \"robô real\" com um degrau no joelho, vê quantas quedas 20 e 40 ms causam sob empurrão e usa o kp identificado na aula 3 para compensar o comando. É o mesmo ajuste de ganho por motor que projetos de 2026 fazem no deploy.",
+  "lead": "Entre a política decidir e o motor girar há rede, laço do controlador e PD do motor. Nesta aula você mede o atraso do \"robô real\" com um degrau no joelho, conta as quedas que 20 e 40 ms causam sob empurrão e compensa o kp identificado na aula 3.",
   "objetivo": "medir o atraso do atuador na bancada, contar as quedas que ele causa sob empurrão e compensar o kp no comando.",
   "competencias": [
     "medir-atraso-por-degrau",
@@ -78,7 +78,7 @@
           "icone": "x",
           "titulo": "Limite",
           "sub": "torque máx.",
-          "detalhe": "Cada junta tem torque máximo (no MJCF do Menagerie, 139 N·m no joelho e 5 N·m no punho). Comando acima disso é cortado: a junta não faz o que a política pediu.",
+          "detalhe": "Cada junta tem torque máximo (no MJCF do Menagerie, 139 N·m no joelho e 5 N·m no pitch e no yaw do punho). Comando acima disso é cortado: a junta não faz o que a política pediu.",
           "itens": [
             {
               "icone": "lista",

@@ -1,0 +1,315 @@
+{
+  "slug": "gap",
+  "num": 1,
+  "menu": "El gap",
+  "titulo": "Dónde miente el simulador en un humanoide",
+  "titulo_curto": "El gap sim × real",
+  "minutos": 16,
+  "lead": "Una política que camina en el simulador y se cae en el robot: ese es el problema del curso. En esta clase montas el banco de pruebas, ejecutas la política de marcha lista del Unitree G1 en el \"sim\" y en un \"real simulado\" con parámetros ocultos, y descubres que ninguna diferencia sola la tumba; la suma de ellas, sí.",
+  "objetivo": "medir el gap corriendo la misma policy en \"sim\" y \"real simulado\", y comprobar que ningún parámetro por sí solo la tira.",
+  "competencias": [
+    "nomear-fontes-do-gap",
+    "rodar-politica-onnx-no-mujoco",
+    "isolar-um-parametro-por-vez"
+  ],
+  "aprende": [
+    {
+      "icone": "camadas",
+      "t": "Las cinco fuentes del gap en un humanoide: actuador, retardo (latencia), fricción, masa y contacto"
+    },
+    {
+      "icone": "robo",
+      "t": "La policy de marcha ya hecha del G1 (unitree_rl_lab) corriendo en MuJoCo"
+    },
+    {
+      "icone": "grafico",
+      "t": "Sim × \"real simulado\": 4,7 m caminados contra caída en 2,3 s"
+    },
+    {
+      "icone": "lupa",
+      "t": "Cambiar un parámetro a la vez para encontrar al culpable"
+    }
+  ],
+  "hero_alt": "Robot humanoide en medio de un paso sobre un piso de laboratorio liso, con el pie resbalando y un cable de seguridad sujeto al pórtico.",
+  "secoes": [
+    {
+      "tipo": "diagrama",
+      "titulo": "Lo que el simulador simplifica",
+      "sub": "Haz clic en cada bloque. Son las cinco fuentes de gap que mide este curso.",
+      "nos": [
+        {
+          "icone": "chip",
+          "titulo": "Actuador",
+          "sub": "kp, torque",
+          "detalhe": "En el simulador, el motor entrega exactamente el torque del PD: kp × error − kd × velocidad. En el robot, la transmisión, el calentamiento y el firmware cambian la ganancia efectiva y el torque máximo. Clase 3 (identificar) y clase 4 (límite).",
+          "itens": [
+            {
+              "icone": "lista",
+              "t": "kp efectivo ≠ kp enviado"
+            }
+          ]
+        },
+        {
+          "icone": "relogio",
+          "titulo": "Retardo",
+          "sub": "red, lazo",
+          "detalhe": "La policy decide a 50 Hz; el comando viaja por la red y el PD del motor corre a 500 Hz–1 kHz. Cada milisegundo entre el estado leído y el torque aplicado cuenta. Clase 4.",
+          "itens": [
+            {
+              "icone": "lista",
+              "t": "el objetivo llega N ms después"
+            }
+          ]
+        },
+        {
+          "icone": "camadas",
+          "titulo": "Fricción",
+          "sub": "pie × piso",
+          "detalhe": "El coeficiente de fricción del pie con el suelo cambia según el piso, la suela y el polvo. Por debajo de cierto valor, el pie resbala en el apoyo. Clase 2.",
+          "itens": [
+            {
+              "icone": "lista",
+              "t": "piso liso, suela gastada"
+            }
+          ]
+        },
+        {
+          "icone": "alvo",
+          "titulo": "Masa",
+          "sub": "carga, batería",
+          "detalhe": "Batería cambiada, una cámara de más, un cable: la masa y el centro de masa reales difieren del archivo. Clase 2.",
+          "itens": [
+            {
+              "icone": "lista",
+              "t": "+3 kg en el torso"
+            }
+          ]
+        },
+        {
+          "icone": "x",
+          "titulo": "Contacto",
+          "sub": "impacto",
+          "forte": true,
+          "detalhe": "El contacto del pie con el suelo es la parte más simplificada de cualquier motor de física: la rigidez, el amortiguamiento y el deslizamiento son aproximaciones. Por eso se valida en más de un motor (clase 6).",
+          "itens": [
+            {
+              "icone": "lista",
+              "t": "cada motor de física aproxima de forma distinta"
+            }
+          ]
+        }
+      ],
+      "legenda": "Ninguna de estas diferencias desaparece. El sim-to-real consiste en volver la policy robusta a ellas, medir las que se pueden medir y probar antes de pisar el suelo."
+    },
+    {
+      "tipo": "passos",
+      "titulo": "La policy y los dos mundos",
+      "sub": "Lo que se ejecuta en las prácticas de este curso. Haz clic en cada etapa.",
+      "passos": [
+        {
+          "titulo": "La policy",
+          "sub": "lista y abierta",
+          "texto": [
+            "Unitree publica en unitree_rl_lab una policy de marcha del G1 de 29 GDL ya entrenada en Isaac Lab y exportada en ONNX, con el archivo de despliegue <code>deploy.yaml</code> (orden de las articulaciones, kp y kd, pose por defecto, escalas). Licencia Apache-2.0.",
+            "Recibe 480 números (5 instantes de velocidad angular, gravedad proyectada, comando, articulaciones y última acción) y devuelve 29 objetivos de posición a 50 Hz."
+          ]
+        },
+        {
+          "titulo": "El sim",
+          "sub": "el archivo",
+          "texto": [
+            "El G1 de MuJoCo Menagerie (el mismo del curso 0) con el PD de la policy dentro de MuJoCo: actuador de posición con el kp y el kd del <code>deploy.yaml</code>.",
+            "Ejecutar en MuJoCo una policy entrenada en Isaac Lab ya es cruzar de un motor de física a otro."
+          ]
+        },
+        {
+          "titulo": "El \"real simulado\"",
+          "sub": "dicho como tal",
+          "texto": [
+            "No tienes un G1. El \"robot real\" del curso es el mismo MuJoCo con cuatro parámetros ocultos en <code>kit/mundos/real.json</code>. No abras el archivo antes de la clase 3: allí descubres uno de ellos con identificación de sistemas.",
+            "Es un ensayo, no el robot: lo que enseña es el método, no el número."
+          ]
+        },
+        {
+          "titulo": "Uno por vez",
+          "sub": "encontrar al culpable",
+          "texto": [
+            "<code>--so kp</code> hace que el \"real\" difiera solo en el kp. Si ejecutas cada parámetro por separado, ves que ninguno derriba la policy, pero el kp solo ya la hace caminar un 50 % más rápido de lo pedido.",
+            "El gap rara vez tiene una sola causa: es la suma de pequeñas diferencias."
+          ]
+        }
+      ]
+    },
+    {
+      "tipo": "codigo",
+      "titulo": "Armar el banco de pruebas (reutiliza el del curso 0)",
+      "sub": "Si hiciste el curso 0, el venv y el Menagerie ya están en ~/fth: el bloque solo agrega onnxruntime, el G1 en el sparse-checkout y la carpeta de la policy de unitree_rl_lab, fijada en el commit probado.",
+      "blocos": [
+        {
+          "rot": "Terminal · preparar ~/fth",
+          "icone": "terminal",
+          "conteudo": "F=${FTH:-$HOME/fth}; mkdir -p $F && cd $F\n[ -d .venv ] || python3.12 -m venv .venv\n. .venv/bin/activate && pip install -q mujoco==3.16.0 numpy onnxruntime==1.31.0 pyyaml\n[ -d sim2real ] || git clone -q --depth 1 https://github.com/inematds/formacao-fth-sim2real-v72 sim2real\n[ -d mujoco_menagerie ] || git clone -q --filter=blob:none --sparse https://github.com/google-deepmind/mujoco_menagerie\ngit -C mujoco_menagerie sparse-checkout add unitree_g1 && git -C mujoco_menagerie checkout -q 62ab00f\n[ -d unitree_rl_lab ] || git clone -q --filter=blob:none --sparse https://github.com/unitreerobotics/unitree_rl_lab\ngit -C unitree_rl_lab sparse-checkout set deploy/robots/g1_29dof/config/policy/velocity\ngit -C unitree_rl_lab checkout -q 4960b84 && git -C unitree_rl_lab log -1 --format='unitree_rl_lab %h (%ad)' --date=short\npython3 -c \"import mujoco, onnxruntime; print('mujoco', mujoco.__version__, '· onnxruntime', onnxruntime.__version__)\""
+        }
+      ],
+      "saida": {
+        "selo": "real",
+        "abas": [
+          {
+            "rot": "Salida capturada (19/10/2026)",
+            "html": "<pre>unitree_rl_lab 4960b84 (2025-11-19)\nmujoco 3.16.0 · onnxruntime 1.31.0</pre><p>Dos líneas y ningún error. La policy viene del commit 4960b84 de unitree_rl_lab: fíjalo, porque un <code>policy.onnx</code> nuevo puede tener otro orden de entradas.</p>"
+          },
+          {
+            "rot": "Error común: sin la policy",
+            "html": "<pre>ERRO: não achei /tmp/sem-bancada/unitree_rl_lab/deploy/robots/g1_29dof/config/policy/velocity/v0/exported/policy.onnx. Rode a preparação da aula 1 (unitree_rl_lab no sparse-checkout).\nsaída: 1</pre><p>Los scripts buscan todo en ~/fth (o en la carpeta de la variable <code>FTH</code>). Si la preparación no se ejecutó, el error indica la ruta que faltó.</p>"
+          }
+        ]
+      }
+    },
+    {
+      "tipo": "codigo",
+      "titulo": "La misma policy en los dos mundos",
+      "sub": "dois_mundos.py ejecuta 10 s caminando a 0,5 m/s en cada mundo. Caída = pelvis por debajo de 0,5 m. Sale con 1 si algún mundo se cayó.",
+      "blocos": [
+        {
+          "rot": "Terminal · sim × real simulado",
+          "icone": "terminal",
+          "conteudo": "F=${FTH:-$HOME/fth}; cd $F/sim2real && . $F/.venv/bin/activate\npython3 kit/dois_mundos.py; echo \"saída: $?\""
+        },
+        {
+          "rot": "Terminal · un parámetro por vez",
+          "icone": "terminal",
+          "conteudo": "F=${FTH:-$HOME/fth}; cd $F/sim2real && . $F/.venv/bin/activate\nfor p in atrito massa kp atraso_ms; do python3 kit/dois_mundos.py --so $p | tail -1; done"
+        }
+      ],
+      "saida": {
+        "selo": "real",
+        "abas": [
+          {
+            "rot": "Salida capturada (19/10/2026)",
+            "html": "<pre>política: unitree_rl_lab G1 29 GDL velocity v0 (ONNX, 480 entradas) · comando 0.50 m/s · 10 s\nsim                          queda: não · andou 4.7 m em 10 s (vel. 0.47 m/s; pedida 0.50)\nreal simulado                queda: sim em t = 2.3 s (andou 1.9 m)\nsaída: 1</pre><p>En el sim, 4,7 m en 10 s (0,47 m/s para 0,50 pedidos). En el \"real simulado\", caída a los 2,3 s.</p>"
+          },
+          {
+            "rot": "Uno por vez",
+            "html": "<pre>real simulado (só atrito)    queda: não · andou 4.7 m em 10 s (vel. 0.47 m/s; pedida 0.50)\nreal simulado (só massa)     queda: não · andou 4.6 m em 10 s (vel. 0.46 m/s; pedida 0.50)\nreal simulado (só kp)        queda: não · andou 7.5 m em 10 s (vel. 0.75 m/s; pedida 0.50)\nreal simulado (só atraso_ms) queda: não · andou 4.6 m em 10 s (vel. 0.46 m/s; pedida 0.50)</pre><p>Ninguno por sí solo derriba la policy. El kp solo hace que el robot camine a 0,75 m/s: el PD más blando deja que las piernas se retrasen, y la policy compensa empujando más.</p>"
+          }
+        ]
+      }
+    },
+    {
+      "tipo": "pratica",
+      "titulo": "Práctica",
+      "sub": "Mide el gap antes de intentar cerrarlo.",
+      "exercicios": [
+        {
+          "id": "e1",
+          "titulo": "E1 · Banco listo",
+          "min": "10 min",
+          "texto": "Ejecuta el bloque de preparación. Si el curso 0 ya montó ~/fth, solo agrega lo que falta.",
+          "pronto": "el bloque termina en <code>unitree_rl_lab 4960b84 (2025-11-19)</code> y <code>mujoco 3.16.0 · onnxruntime 1.31.0</code>."
+        },
+        {
+          "id": "e2",
+          "titulo": "E2 · El gap medido",
+          "min": "3 min",
+          "texto": "Ejecuta la misma policy en los dos mundos y anota cuánto caminó en cada uno.",
+          "pronto": "<code>python3 kit/dois_mundos.py; echo \"saída: $?\"</code> → <code>real simulado … queda: sim em t = 2.3 s</code> y <code>saída: 1</code>."
+        },
+        {
+          "id": "e3",
+          "titulo": "E3 · Encuentra al culpable",
+          "min": "5 min",
+          "texto": "Ejecuta el bucle \"un parámetro a la vez\" y escribe qué parámetro, por sí solo, cambia más el comportamiento y qué cambia.",
+          "pronto": "las 4 líneas muestran <code>queda: não</code> y la del kp muestra <code>vel. 0.75 m/s; pedida 0.50</code>; escribiste \"ninguno la tumba solo; el kp cambia la velocidad\"."
+        }
+      ]
+    },
+    {
+      "tipo": "quiz",
+      "titulo": "Prueba de la clase",
+      "sub": "La explicación aparece después de tu respuesta.",
+      "perguntas": [
+        {
+          "p": "Cada parámetro del \"real simulado\", por sí solo, no derriba la policy; los cuatro juntos sí. ¿Qué te enseña esto?",
+          "opcoes": [
+            "Que el gap suele ser la suma de varias diferencias pequeñas.",
+            "Que el simulador calculó mal la caída en el mundo real.",
+            "Que la policy solo funciona con un kp exactamente igual al del archivo.",
+            "Que la fricción siempre es la causa principal de una caída."
+          ],
+          "certa": 0,
+          "explica": "Cada diferencia le quita un poco de margen. Juntas, superan lo que la policy aguanta. Por eso se mide una por una y se prueba la combinación.",
+          "ref": "codigo",
+          "cert": true
+        },
+        {
+          "p": "Ejecutar en MuJoCo una policy entrenada en Isaac Lab ya es:",
+          "opcoes": [
+            "Un error, porque la policy solo vale en el simulador del entrenamiento.",
+            "Entrenar la policy de nuevo, ahora en MuJoCo.",
+            "Un sim2sim: pasar de un motor de física a otro.",
+            "Lo mismo que ejecutar en el robot, porque los dos usan el mismo URDF."
+          ],
+          "certa": 2,
+          "explica": "Los distintos motores aproximan el contacto y el actuador de maneras diferentes. Caminar en los dos es una primera señal de robustez; es la compuerta (gate) de la clase 6.",
+          "ref": "passos"
+        },
+        {
+          "p": "Solo con el kp más bajo, el robot camina a 0,75 m/s cuando lo pedido es 0,50. ¿Por qué?",
+          "opcoes": [
+            "El kp más bajo aumenta el torque máximo de cada motor.",
+            "El PD más blando retrasa las piernas y la policy compensa empujando más.",
+            "El comando de velocidad se multiplica por el kp antes de llegar a la policy.",
+            "MuJoCo reduce la fricción del pie cuando el kp disminuye."
+          ],
+          "certa": 1,
+          "explica": "La policy es un lazo cerrado: si las articulaciones no llegan al objetivo, pide más. El resultado es caminar mal sin caer, un gap que solo aparece al medir la velocidad.",
+          "ref": "codigo"
+        }
+      ]
+    },
+    {
+      "tipo": "resumo",
+      "titulo": "En tres frases",
+      "itens": [
+        {
+          "t": "Fuentes",
+          "texto": "Actuador, retardo (latencia), fricción, masa y contacto separan el simulador del robot."
+        },
+        {
+          "t": "Medida",
+          "texto": "La misma policy camina 4,7 m en el sim y cae a los 2,3 s en el \"real simulado\"."
+        },
+        {
+          "t": "Método",
+          "texto": "Un parámetro a la vez encuentra al culpable; la suma es lo que derriba."
+        }
+      ]
+    },
+    {
+      "tipo": "links",
+      "titulo": "Para ir más allá",
+      "links": [
+        {
+          "t": "unitree_rl_lab: la policy y el deploy.yaml del G1",
+          "href": "https://github.com/unitreerobotics/unitree_rl_lab",
+          "icone": "git"
+        },
+        {
+          "t": "vla-v72, clase 6: evaluar en simulación y el concepto de reality gap",
+          "href": "https://inematds.github.io/vla-v72/es/aulas/simulacao/",
+          "icone": "seta"
+        },
+        {
+          "t": "Curso anterior de FTH: enseñar a caminar con RL",
+          "href": "https://inematds.github.io/formacao-fth-locomocao-v72/es/",
+          "icone": "robo"
+        },
+        {
+          "t": "MuJoCo Menagerie: el G1 de 29 GDL",
+          "href": "https://github.com/google-deepmind/mujoco_menagerie/tree/main/unitree_g1",
+          "icone": "git"
+        }
+      ]
+    }
+  ]
+}

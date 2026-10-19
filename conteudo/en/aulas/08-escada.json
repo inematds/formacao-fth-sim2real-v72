@@ -1,0 +1,381 @@
+{
+  "slug": "escada",
+  "num": 8,
+  "menu": "Ladder",
+  "titulo": "The deployment ladder: sim → sim2sim → suspended → floor",
+  "titulo_curto": "The ladder to the floor",
+  "minutos": 13,
+  "lead": "Everything in this course becomes a plan: four steps, each with what runs, the criterion to move up, and the reason to stop and go back. In this lesson you write your own ladder in a YAML file, check it with a script, and simulate the queue of steps with a failure in the middle. The safety procedure with the robot powered on is in course 4.",
+  "objetivo": "write the ladder sim → sim2sim → suspended → floor with a pass criterion and a stop criterion at each step, and check it with a script.",
+  "competencias": [
+    "planejar-escada-de-implantacao",
+    "escrever-criterio-verificavel",
+    "voltar-um-degrau"
+  ],
+  "aprende": [
+    {
+      "icone": "camadas",
+      "t": "The four steps and what each lesson in this course delivers to them"
+    },
+    {
+      "icone": "check",
+      "t": "Pass criterion in the command → expected output format"
+    },
+    {
+      "icone": "fila",
+      "t": "The queue of steps: if one fails, go back a step"
+    },
+    {
+      "icone": "calendario",
+      "t": "Your plan with dates"
+    }
+  ],
+  "hero_alt": "Test area of a lab with a humanoid robot hanging from a gantry, a floor marked with yellow tape, and a red stop button in the foreground.",
+  "secoes": [
+    {
+      "tipo": "diagrama",
+      "titulo": "The four steps",
+      "sub": "Click each step. You only move up when the criterion is true.",
+      "estilo": "escada",
+      "nos": [
+        {
+          "icone": "camadas",
+          "titulo": "Sim",
+          "sub": "randomized",
+          "detalhe": "The policy in the training simulator and in MuJoCo, with the training randomization ranges and a little beyond (lesson 2). Kit criterion: sobreviveu 20/20 dentro da faixa.",
+          "itens": [
+            {
+              "icone": "lista",
+              "t": "lessons 1 and 2"
+            }
+          ]
+        },
+        {
+          "icone": "portao",
+          "titulo": "Sim2sim",
+          "sub": "gate",
+          "detalhe": "Another robot model and the manufacturer's DDS message path (lesson 6). Criterion: PORTÃO: passou (3 de 3 etapas).",
+          "itens": [
+            {
+              "icone": "lista",
+              "t": "lesson 6"
+            }
+          ]
+        },
+        {
+          "icone": "robo",
+          "titulo": "Suspended",
+          "sub": "gantry",
+          "forte": true,
+          "detalhe": "The real robot hanging, feet in the air or barely touching the floor, held by an elastic band or a cable. Here you do the bench test, the sysid, and the latency measurement (lessons 3 to 5); the policy moves the legs with no load. The unitree_rl_lab deploy flow uses suspension before releasing the robot.",
+          "itens": [
+            {
+              "icone": "lista",
+              "t": "lessons 3, 4, and 5"
+            }
+          ]
+        },
+        {
+          "icone": "alvo",
+          "titulo": "Floor",
+          "sub": "isolated area",
+          "detalhe": "Flat floor, marked-off area, slack cable, one person on the stop button. Short, repeated criterion: standing still, then slowly, three times. The full safety procedure is in course 4.",
+          "itens": [
+            {
+              "icone": "lista",
+              "t": "course 4"
+            }
+          ]
+        }
+      ],
+      "legenda": "If a step fails, go back to the previous one with what you learned: a new identified parameter, a new randomization range, a new criterion."
+    },
+    {
+      "tipo": "simfila",
+      "titulo": "The queue of steps",
+      "sub": "Run it, watch a step fail, and run it again. That's the ladder cycle.",
+      "tarefas": [
+        "Sim: 20/20 within the training range",
+        "Sim2sim: gate with DDS",
+        "Suspended: sysid and latency measured",
+        "Floor: 3 times with no fall"
+      ],
+      "falha": 2,
+      "rot": {
+        "entrada": "to climb",
+        "rodando": "on the step",
+        "feito": "passed",
+        "falhou": "went back",
+        "rodar": "Climb the ladder",
+        "parar": "Stop (emergency button)",
+        "zerar": "Start over"
+      },
+      "msg": {
+        "inicio": "4 steps to climb. Click \"Climb the ladder\".",
+        "rodando": "One step at a time: you only move up when the current step's criterion is true.",
+        "parou": "Stopped in the middle of a step. Run it again: the step starts from zero, and the previous ones still count.",
+        "retoma": "Resume: the interrupted step starts over. What already passed is not repeated.",
+        "fim": "Ladder complete: the policy walks on the floor.",
+        "fimfalha": "A step went back with the reason noted (e.g., latency greater than simulated). Fix it in the simulator and climb again."
+      },
+      "legenda": "Illustrative simulation in the browser. The failure on the \"Suspended\" step is on purpose, to show the return."
+    },
+    {
+      "tipo": "codigo",
+      "titulo": "Your ladder in YAML",
+      "sub": "Copy the template to ~/fth/escada.yaml and swap in your robot and your criteria. conferir_escada.py requires the 4 steps in order, with onde, criterio (command → output), and when to stop.",
+      "blocos": [
+        {
+          "rot": "File · kit/escada-modelo.yaml",
+          "icone": "arquivo",
+          "conteudo": "# escada.yaml — the deployment ladder for your policy (FTH 2, lesson 8)\n# Each step: what runs, the criterion to move up (command → expected output) and when to stop and go back.\npolitica: unitree_rl_lab G1 29 GDL velocity v0 (ONNX)\nrobo: Unitree G1 EDU (29 GDL)\ndegraus:\n  - nome: sim\n    onde: MuJoCo 3.16 + G1 do Menagerie, com as faixas de randomização do treino\n    criterio: \"python3 kit/randomizar.py --seeds 20 --faixa treino → sobreviveu: 20/20\"\n    parar_se: qualquer queda dentro da faixa do treino\n  - nome: sim2sim\n    onde: outro MJCF (unitree_mujoco) e o caminho de mensagens do robô (DDS, rt/lowcmd e rt/lowstate)\n    criterio: \"python3 kit/portao_sim2sim.py --passo 0.001 --dds → PORTÃO: passou (3 de 3 etapas)\"\n    parar_se: queda, velocidade fora de ±0,15 m/s, pernas no limite de torque ou política abaixo de 45 Hz\n  - nome: suspenso\n    onde: robô no pórtico, pés fora do chão, elástico ou cabo de segurança\n    criterio: \"ensaio de bancada + sysid → kp identificado e atraso medido; a política mexe as pernas sem bater no limite\"\n    parar_se: junta batendo no limite, vibração, temperatura subindo, atraso maior que o simulado\n  - nome: chão\n    onde: piso plano, área isolada, cabo frouxo no pórtico, pessoa no botão de parada\n    criterio: \"teste no chão → 10 s parado + 10 s a 0,3 m/s sem queda, três vezes seguidas\"\n    parar_se: tropeço, queda, qualquer pessoa dentro da área"
+        },
+        {
+          "rot": "Terminal · check the ladder",
+          "icone": "terminal",
+          "conteudo": "F=${FTH:-$HOME/fth}; cd $F/sim2real && . $F/.venv/bin/activate\n[ -f $F/escada.yaml ] || cp kit/escada-modelo.yaml $F/escada.yaml\npython3 kit/conferir_escada.py $F/escada.yaml; echo \"saída: $?\""
+        },
+        {
+          "rot": "Terminal · ladder with no stop criterion (common mistake)",
+          "icone": "terminal",
+          "conteudo": "F=${FTH:-$HOME/fth}; cd $F/sim2real && . $F/.venv/bin/activate\ngrep -v \"parar_se: tropeço\" kit/escada-modelo.yaml > $F/escada-incompleta.yaml\npython3 kit/conferir_escada.py $F/escada-incompleta.yaml; echo \"saída: $?\""
+        }
+      ],
+      "saida": {
+        "selo": "real",
+        "abas": [
+          {
+            "rot": "Captured output (10/19/2026)",
+            "html": "<pre>4 degraus, 4 critérios · escada ok\nsaída: 0</pre><p>Four steps, four criteria, exit 0.</p>"
+          },
+          {
+            "rot": "Common mistake: no \"parar_se\"",
+            "html": "<pre>ERRO: degrau 'chão' sem parar_se\n4 degraus, 4 critérios · 1 problema(s)\nsaída: 1</pre><p>A step with no stop condition is the most expensive mistake: on the floor, it's what tells you when to press the button. The script fails it.</p>"
+          }
+        ]
+      }
+    },
+    {
+      "tipo": "pratica",
+      "titulo": "Practice",
+      "sub": "The plan all the way to the floor, verifiable.",
+      "exercicios": [
+        {
+          "id": "e1",
+          "titulo": "E1 · Ladder checked",
+          "min": "15 min",
+          "texto": "Copy the template, swap in your robot, policy and criteria (use the outputs you captured yourself in lessons 2, 3 and 6), and check it.",
+          "pronto": "<code>python3 kit/conferir_escada.py ~/fth/escada.yaml; echo \"saída: $?\"</code> → <code>4 degraus, 4 critérios · escada ok</code> and <code>saída: 0</code>."
+        },
+        {
+          "id": "e2",
+          "titulo": "E2 · The reason to turn back",
+          "min": "5 min",
+          "texto": "For each step, write in the YAML a stop reason that you would know how to measure (with the command or the instrument).",
+          "pronto": "the 4 <code>parar_se</code> fields cite something measurable (fall, ms, %, N·m, temperature)."
+        },
+        {
+          "id": "e3",
+          "titulo": "E3 · Plan with dates",
+          "min": "5 min",
+          "texto": "Generate your own study plan with the generator below and mark it on your calendar.",
+          "pronto": "the downloaded <code>plano.md</code> lists the 8 lessons with the practice and the \"done when\" of each one."
+        }
+      ]
+    },
+    {
+      "tipo": "mapa",
+      "titulo": "What you built in this course",
+      "sub": "Four main deliverables. Click a step to see its \"done when\".",
+      "degraus": [
+        {
+          "aula": "gap",
+          "icone": "grafico",
+          "quando": "Lessons 1–2",
+          "titulo": "Gap",
+          "sub": "measured",
+          "saida": "Fall in 2.3 s; 20/20 × 8/20.",
+          "passo": "The gap of a ready-made policy, measured, and the coverage of the training randomization compared with the outside world."
+        },
+        {
+          "aula": "sysid",
+          "icone": "chip",
+          "quando": "Lessons 3–4",
+          "titulo": "Actuator",
+          "sub": "kp, latency",
+          "saida": "kp within ±10 %; latency of 22 ms.",
+          "passo": "The \"real robot\" actuator identified on the gantry and the latency measured per step, with the compensation that makes the \"real\" one walk."
+        },
+        {
+          "aula": "sim2sim",
+          "icone": "portao",
+          "quando": "Lessons 5–6",
+          "titulo": "Gate",
+          "sub": "delta, DDS",
+          "saida": "Sim × real error on falls; gate 3 of 3.",
+          "passo": "The simulator corrected with data and the policy passing through another model and through the manufacturer's DDS."
+        },
+        {
+          "aula": "escada",
+          "icone": "camadas",
+          "quando": "Lessons 7–8",
+          "titulo": "Ladder",
+          "sub": "all the way to the floor",
+          "saida": "escada.yaml with 4 criteria.",
+          "passo": "The twin and the proof on the physics, and the ladder with a criterion to go up and to stop at each step."
+        }
+      ],
+      "resultado": {
+        "titulo": "At the end of the course",
+        "texto": "Gap measured, actuator identified, gate passed and ladder written.",
+        "total": "8 lessons"
+      },
+      "rolagem_fim": {
+        "titulo": "The whole course",
+        "texto": "Four deliverables in sequence. The ladder is what course 4 (operating) applies to the real robot."
+      },
+      "legenda": "Order matters: the criterion for each step uses the output of an earlier lesson."
+    },
+    {
+      "tipo": "gerador",
+      "titulo": "Generate your plan with dates",
+      "sub": "Pick a start date and how much time you have per week. The plan lists the practices for each lesson.",
+      "curso": "FTH 2 · From simulator to ground",
+      "horas_padrao": 3,
+      "degraus": [
+        {
+          "titulo": "Lesson 1 · The gap, measured",
+          "aula": "gap"
+        },
+        {
+          "titulo": "Lesson 2 · Domain randomization",
+          "aula": "randomizacao"
+        },
+        {
+          "titulo": "Lesson 3 · System identification",
+          "aula": "sysid"
+        },
+        {
+          "titulo": "Lesson 4 · Latency and actuator limit",
+          "aula": "atuador"
+        },
+        {
+          "titulo": "Lesson 5 · Delta action",
+          "aula": "corrigir"
+        },
+        {
+          "titulo": "Lesson 6 · The sim2sim gate",
+          "aula": "sim2sim"
+        },
+        {
+          "titulo": "Lesson 7 · Real-to-sim",
+          "aula": "real2sim"
+        },
+        {
+          "titulo": "Lesson 8 · The ladder to the ground",
+          "aula": "escada"
+        }
+      ],
+      "txt": {
+        "titulo": "Plan — FTH 2 · From the simulator to the ground",
+        "inicio": "Start",
+        "ritmo": "Pace",
+        "termino": "Expected finish",
+        "ate": "by",
+        "pronto": "done when",
+        "semanas": "weeks",
+        "travou": "## What got stuck and the rule I made",
+        "h": "h per week",
+        "exs": "exercises"
+      }
+    },
+    {
+      "tipo": "quiz",
+      "titulo": "Lesson quiz",
+      "sub": "The explanation appears after your answer.",
+      "perguntas": [
+        {
+          "p": "On which step do you do the bench test, the sysid, and the latency measurement on the real robot?",
+          "opcoes": [
+            "Yes, because it's all simulated.",
+            "Sim2sim, along with DDS.",
+            "Ground, with the robot walking.",
+            "Suspended, with the robot on the gantry."
+          ],
+          "certa": 3,
+          "explica": "Hanging, the robot moves its legs with no load and no risk of falling: it's the step for measuring the real actuator.",
+          "ref": "diagrama",
+          "cert": true
+        },
+        {
+          "p": "What makes a step's criterion verifiable?",
+          "opcoes": [
+            "Having the form command → expected output.",
+            "Being written by whoever trained the policy.",
+            "Naming the robot and the policy.",
+            "Having more than one line of text."
+          ],
+          "certa": 0,
+          "explica": "If someone else runs the same command and sees the same output, the step passed. \"Looks stable\" is not a criterion.",
+          "ref": "codigo"
+        },
+        {
+          "p": "A step failed (real latency greater than simulated). What does the ladder tell you to do?",
+          "opcoes": [
+            "Jump to the ground with the cable shorter.",
+            "Go back to the simulator with the measured latency and climb again.",
+            "Raise kp until the failure goes away.",
+            "Repeat the same step until it passes by luck."
+          ],
+          "certa": 1,
+          "explica": "The way back carries the new information downward: the measured latency goes into the simulator (and into the randomization), and the policy climbs the ladder again.",
+          "ref": "simfila"
+        }
+      ]
+    },
+    {
+      "tipo": "resumo",
+      "titulo": "In three sentences",
+      "itens": [
+        {
+          "t": "Steps",
+          "texto": "Sim, sim2sim, suspended, and ground, in that order."
+        },
+        {
+          "t": "Criterion",
+          "texto": "Each step has a command → output to climb and a measurable reason to stop."
+        },
+        {
+          "t": "Back",
+          "texto": "If it fails, go back one step with what you measured; course 4 applies the ladder to the robot."
+        }
+      ]
+    },
+    {
+      "tipo": "links",
+      "titulo": "Going further",
+      "links": [
+        {
+          "t": "Next FTH course: whole body (imitate, teleoperate, and obey)",
+          "href": "https://inematds.github.io/formacao-fth-corpo-inteiro-v72/en/",
+          "icone": "robo"
+        },
+        {
+          "t": "vla-v72, lesson 8: standards and the real world",
+          "href": "https://inematds.github.io/vla-v72/en/aulas/mundo-real/",
+          "icone": "escudo"
+        },
+        {
+          "t": "unitree_rl_lab: the train → sim2sim → robot flow",
+          "href": "https://github.com/unitreerobotics/unitree_rl_lab",
+          "icone": "git"
+        },
+        {
+          "t": "FTH 0: the humanoid's body (the ~/fth bench)",
+          "href": "https://inematds.github.io/formacao-fth-anatomia-v72/en/",
+          "icone": "seta"
+        }
+      ]
+    }
+  ]
+}

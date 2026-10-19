@@ -99,7 +99,7 @@
           "sub": "0,3 a 1,0",
           "texto": [
             "Evento <code>physics_material</code>, no início (startup): atrito estático e dinâmico entre 0,3 e 1,0 em todos os corpos do robô.",
-            "Na aula 1, atrito 0,3 ainda andava e 0,2 caía em 1,9 s: o chão da faixa é o chão do que a política aguenta."
+            "No sorteio de fora desta aula, os mundos com atrito perto de 0,2 (o 2 e o 5) caem; o chão da faixa do treino é o chão do que a política viu."
           ]
         },
         {
@@ -121,7 +121,7 @@
           "titulo": "Fora",
           "sub": "kp e atraso",
           "texto": [
-            "Não há randomização de kp, kd nem de atraso nesta tarefa. Exatamente os dois que a aula 1 mostrou que mudam o comportamento.",
+            "Não há randomização de kp, kd nem de atraso nesta tarefa. Na aula 1, o kp sozinho já mudou a marcha (0,75 m/s pedindo 0,50); o atraso pesa sob empurrão (aula 4).",
             "Outros projetos randomizam ganhos e atraso; o que importa é saber o que o seu treino cobriu antes de ligar o robô."
           ]
         }
@@ -169,7 +169,7 @@
           },
           {
             "rot": "Erro comum: culpar um parâmetro só",
-            "html": "<pre>   1 atrito=0.45 massa=7.38 kp=0.91 atraso_ms=6 empurrão 172 N → de pé\n   2 atrito=0.20 massa=6.93 kp=0.92 atraso_ms=14 empurrão 119 N → caiu\n   3 atrito=0.30 massa=4.67 kp=0.80 atraso_ms=16 empurrão 219 N → caiu\n   4 atrito=0.45 massa=7.93 kp=0.69 atraso_ms=4 empurrão 194 N → caiu\n   5 atrito=0.21 massa=5.09 kp=0.79 atraso_ms=28 empurrão 50 N → caiu\n   6 atrito=0.40 massa=3.49 kp=0.60 atraso_ms=6 empurrão 131 N → caiu</pre><p>O mundo 1 tem a maior massa e fica de pé; o 6 tem atrito 0,40 e cai. Fora da faixa, o que derruba é a combinação (aqui, kp 0,60 com empurrão de 131 N). Olhar um mundo só e culpar um parâmetro é o erro comum: compare placares.</p>"
+            "html": "<pre>   1 atrito=0.45 massa=7.38 kp=0.91 atraso_ms=6 empurrão 172 N → de pé\n   2 atrito=0.20 massa=6.93 kp=0.92 atraso_ms=14 empurrão 119 N → caiu\n   3 atrito=0.30 massa=4.67 kp=0.80 atraso_ms=16 empurrão 219 N → caiu\n   4 atrito=0.45 massa=7.93 kp=0.69 atraso_ms=4 empurrão 194 N → caiu\n   5 atrito=0.21 massa=5.09 kp=0.79 atraso_ms=28 empurrão 50 N → caiu\n   6 atrito=0.40 massa=3.49 kp=0.60 atraso_ms=6 empurrão 131 N → caiu</pre><p>O mundo 1 tem massa de 7,4 kg e fica de pé; o 4, com 7,9 kg, cai; o 6 tem atrito 0,40 e cai. Nenhum parâmetro isolado explica o placar: fora da faixa, é a combinação. Olhar um mundo só e culpar um parâmetro é o erro comum; compare placares e, para afirmar uma causa, varie um parâmetro de cada vez (E2).</p>"
           }
         ]
       }
@@ -250,7 +250,7 @@
             "Os empurrões a cada 5 s."
           ],
           "certa": 1,
-          "explica": "Atrito, massa e empurrão estão na EventCfg. Ganhos e atraso não estão, e foram eles que mudaram o comportamento na aula 1.",
+          "explica": "Atrito, massa e empurrão estão na EventCfg. Ganhos e atraso não estão; o kp sozinho já mudou a marcha na aula 1, e o atraso derruba sob empurrão na aula 4.",
           "ref": "passos"
         },
         {
@@ -270,11 +270,11 @@
           "opcoes": [
             "Para deixar o sorteio mais difícil a cada rodada.",
             "Porque o ONNX só roda com a semente 7.",
-            "Para o mesmo sorteio dar o mesmo placar em qualquer máquina.",
+            "Para o mesmo sorteio dar o mesmo placar a cada rodada.",
             "Para que os mundos sorteados fora da faixa caiam dentro dela."
           ],
           "certa": 2,
-          "explica": "Com semente fixa, 20/20 e 8/20 se repetem e dá para comparar duas políticas no mesmo conjunto de mundos.",
+          "explica": "Com semente fixa, 20/20 e 8/20 se repetem nesta pilha (capturado duas vezes) e dá para comparar duas políticas no mesmo conjunto de mundos. Em outra CPU, a última casa pode variar.",
           "ref": "codigo"
         }
       ]

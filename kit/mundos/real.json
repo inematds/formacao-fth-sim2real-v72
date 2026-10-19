@@ -1,0 +1,8 @@
+{
+  "nome": "real",
+  "descricao": "o \"robô real\" do curso: um MuJoCo com parâmetros escondidos. Não abra antes da aula 3.",
+  "atrito": 0.6,
+  "massa": 3.0,
+  "kp": 0.6,
+  "atraso_ms": 20
+}

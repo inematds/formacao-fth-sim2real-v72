@@ -1,0 +1,6 @@
+ensaio de bancada no mundo 'real': 1999 amostras em 4.0 s · 4 encoders + velocidades
+  enc_left_hip_pitch     amplitude medida  18.6°
+  enc_left_hip_roll      amplitude medida  29.6°
+  enc_left_knee          amplitude medida  50.0°
+  enc_left_ankle_pitch   amplitude medida  19.3°
+gravado: ~/fth/log.npz

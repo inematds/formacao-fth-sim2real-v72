@@ -1,0 +1,4 @@
+degrau de 0,3 rad no joelho esquerdo, robô pendurado: tempo até o encoder mexer 0,005 rad
+  sim:               8 ms
+  real:             30 ms
+atraso medido (real − sim): 22 ms

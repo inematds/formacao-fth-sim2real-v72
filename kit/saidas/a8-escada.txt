@@ -1,0 +1,2 @@
+4 degraus, 4 critérios · escada ok
+saída: 0

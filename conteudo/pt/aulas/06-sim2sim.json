@@ -1,0 +1,320 @@
+{
+  "slug": "sim2sim",
+  "num": 6,
+  "menu": "Sim2sim",
+  "titulo": "Sim2sim como portão antes do robô",
+  "titulo_curto": "O portão sim2sim",
+  "minutos": 18,
+  "lead": "Antes de qualquer robô, a política tem de passar num segundo simulador e no mesmo caminho de mensagens que o robô usa. É o fluxo oficial do unitree_rl_lab: treinar no Isaac Lab, validar no unitree_mujoco, só então o G1. Nesta aula você monta esse portão em três etapas, com DDS de verdade, e vê o erro que mais derruba políticas nessa travessia.",
+  "objetivo": "passar a política por um portão de três etapas: outro modelo do robô e o caminho DDS de mensagens do fabricante.",
+  "competencias": [
+    "montar-portao-sim2sim",
+    "rodar-dds-do-fabricante",
+    "diagnosticar-ordem-de-juntas"
+  ],
+  "aprende": [
+    {
+      "icone": "portao",
+      "t": "As três etapas do portão e o critério de cada uma"
+    },
+    {
+      "icone": "chip",
+      "t": "unitree_mujoco + unitree_sdk2_python + CycloneDDS: rt/lowcmd e rt/lowstate"
+    },
+    {
+      "icone": "x",
+      "t": "O erro número 1: a ordem das juntas (joint_ids_map)"
+    },
+    {
+      "icone": "lupa",
+      "t": "Aviso que é do simulador, não da política"
+    }
+  ],
+  "hero_alt": "Dois monitores lado a lado com o mesmo robô humanoide simulado andando e um switch de rede entre eles.",
+  "secoes": [
+    {
+      "tipo": "diagrama",
+      "titulo": "O portão em três etapas",
+      "sub": "Clique em cada bloco. Reprovou numa etapa, não sobe.",
+      "nos": [
+        {
+          "icone": "robo",
+          "titulo": "Menagerie",
+          "sub": "etapa 1",
+          "detalhe": "O G1 do MuJoCo Menagerie com o PD dentro do MuJoCo: o mundo das aulas 1 a 5. A política já veio do Isaac Lab, então esta etapa já é uma travessia de motor.",
+          "itens": [
+            {
+              "icone": "lista",
+              "t": "PD no MJCF, passo 2 ms"
+            }
+          ]
+        },
+        {
+          "icone": "camadas",
+          "titulo": "unitree_mujoco",
+          "sub": "etapa 2",
+          "detalhe": "Outro MJCF do mesmo robô, o que a Unitree usa no simulador dela: motores de torque, amortecimento e atrito de junta próprios. O PD é calculado pelo kit a cada passo, como no driver do motor.",
+          "itens": [
+            {
+              "icone": "lista",
+              "t": "outro modelo do G1"
+            }
+          ]
+        },
+        {
+          "icone": "nuvem",
+          "titulo": "DDS",
+          "sub": "etapa 3",
+          "forte": true,
+          "detalhe": "O mesmo G1 do unitree_mujoco num processo separado, falando CycloneDDS como o robô: publica rt/lowstate (juntas, IMU) e escuta rt/lowcmd (alvo, kp, kd por motor). A política roda em tempo real, a 50 Hz, e manda o comando a ~500 Hz.",
+          "itens": [
+            {
+              "icone": "lista",
+              "t": "domínio 1, interface lo"
+            }
+          ]
+        },
+        {
+          "icone": "check",
+          "titulo": "Critério",
+          "sub": "por etapa",
+          "detalhe": "10 s a 0,5 m/s sem cair; velocidade média a ±0,15 m/s da pedida; pernas e cintura no limite de torque em no máximo 1 % do tempo; na etapa 3, política a 45 Hz ou mais.",
+          "itens": [
+            {
+              "icone": "lista",
+              "t": "PORTÃO: passou"
+            }
+          ]
+        }
+      ],
+      "legenda": "Um estudo de 2026 com o G1 em ações de canteiro de obras avaliou cada ação em dois motores de física antes do robô, e só as que passaram foram ao G1 físico (arXiv 2608.01600, segundo o robotica-real2sim, conferido em 14/10/2026)."
+    },
+    {
+      "tipo": "passos",
+      "titulo": "O que a travessia costuma quebrar",
+      "sub": "Achados reais da montagem deste portão (19/10/2026). Clique em cada um.",
+      "passos": [
+        {
+          "titulo": "Ordem das juntas",
+          "sub": "o nº 1",
+          "texto": [
+            "O Isaac Lab ordena as juntas de um jeito; o SDK do robô, de outro. O <code>deploy.yaml</code> traz o mapa (<code>joint_ids_map</code>), e cada lista vem numa ordem: kp e kd na ordem do robô, pose padrão e ações na ordem do Isaac Lab.",
+            "Errar isso derruba o robô em 1 s, nos dois simuladores (erro comum abaixo)."
+          ]
+        },
+        {
+          "titulo": "Passo e integrador",
+          "sub": "aviso",
+          "texto": [
+            "O unitree_mujoco vem com passo de 5 ms e integrador de Euler. Com o kd = 10 do punho (limite de 5 N·m), o PD oscila e o braço fica no limite de torque o tempo todo. A marcha não sofre; o portão dá aviso, não reprova.",
+            "Com 1–2 ms, o aviso some. É do simulador, não da política: confira antes de mexer no treino."
+          ]
+        },
+        {
+          "titulo": "DDS no lo",
+          "sub": "descoberta",
+          "texto": [
+            "A interface <code>lo</code> não faz multicast, e sem multicast dois processos DDS não se acham. O kit acrescenta à configuração da Unitree um par fixo em 127.0.0.1 (<code>s2r.iniciar_dds</code>) só quando a interface é lo.",
+            "No robô, a interface é a placa de rede ligada a ele; o domínio e os tópicos são os mesmos."
+          ]
+        },
+        {
+          "titulo": "CycloneDDS",
+          "sub": "versão fixa",
+          "texto": [
+            "O SDK pede o pacote Python <code>cyclonedds==0.10.2</code>. Em aarch64 não há wheel: o pip falha sem a biblioteca C. O bloco compila a branch <code>releases/0.10.x</code> (5041f35) com cmake, em 1–2 min.",
+            "A tag 0.10.2 do C abortou aqui com \"buffer overflow detected\". Em x86_64 o pip costuma achar a wheel (relatado, não testado aqui)."
+          ]
+        }
+      ]
+    },
+    {
+      "tipo": "codigo",
+      "titulo": "Preparar o caminho do fabricante (uma vez)",
+      "sub": "CycloneDDS 0.10.2, unitree_sdk2_python e unitree_mujoco, fixados nos commits testados. Precisa de cmake e de um compilador C se o pip não achar wheel.",
+      "blocos": [
+        {
+          "rot": "Terminal · DDS + SDK + simulador da Unitree",
+          "icone": "terminal",
+          "conteudo": "F=${FTH:-$HOME/fth}; cd $F && . .venv/bin/activate\npip install -q cyclonedds==0.10.2 2>/dev/null || {\n  [ -d cyclonedds ] || git clone -q --filter=blob:none -b releases/0.10.x https://github.com/eclipse-cyclonedds/cyclonedds\n  git -C cyclonedds checkout -q 5041f35\n  cmake -S cyclonedds -B cyclonedds/build -DCMAKE_INSTALL_PREFIX=$F/cyclonedds/install -DBUILD_EXAMPLES=OFF > /dev/null\n  cmake --build cyclonedds/build --target install -j 4 > /dev/null 2>&1\n  export CYCLONEDDS_HOME=$F/cyclonedds/install && pip install -q cyclonedds==0.10.2; }\ngit -C cyclonedds log -1 --format=\"cyclonedds (C) %H (%ad)\" --date=short 2>/dev/null | sed -E 's/([0-9a-f]{7})[0-9a-f]{33}/\\1/'\n[ -d unitree_sdk2_python ] || git clone -q https://github.com/unitreerobotics/unitree_sdk2_python\ngit -C unitree_sdk2_python checkout -q 814556d && pip install -q -e unitree_sdk2_python pygame\n[ -d unitree_mujoco ] || git clone -q https://github.com/unitreerobotics/unitree_mujoco\ngit -C unitree_mujoco checkout -q 1eb6642 && git -C unitree_mujoco log -1 --format='unitree_mujoco %h (%ad)' --date=short\npython3 -c \"import importlib.metadata as m, unitree_sdk2py; print('cyclonedds', m.version('cyclonedds'), '· unitree_sdk2py ok')\""
+        }
+      ],
+      "saida": {
+        "selo": "real",
+        "abas": [
+          {
+            "rot": "Saída capturada (19/10/2026)",
+            "html": "<pre>cyclonedds (C) 5041f35 (2026-03-22)\nunitree_mujoco 1eb6642 (2026-09-07)\ncyclonedds 0.10.2 · unitree_sdk2py ok</pre><p>Três linhas. Na primeira vez nesta máquina (aarch64), a compilação do CycloneDDS levou 1 a 2 minutos.</p>"
+          }
+        ]
+      }
+    },
+    {
+      "tipo": "codigo",
+      "titulo": "Rodar o portão",
+      "sub": "Sem --dds, as etapas 1 e 2 (determinísticas, ~1 min). Com --dds, a etapa 3 em tempo real. --passo muda o passo do unitree_mujoco.",
+      "blocos": [
+        {
+          "rot": "Terminal · etapas 1 e 2 (passo de 5 ms do unitree_mujoco)",
+          "icone": "terminal",
+          "conteudo": "F=${FTH:-$HOME/fth}; cd $F/sim2real && . $F/.venv/bin/activate\npython3 kit/portao_sim2sim.py; echo \"saída: $?\""
+        },
+        {
+          "rot": "Terminal · as três etapas, com DDS",
+          "icone": "terminal",
+          "conteudo": "F=${FTH:-$HOME/fth}; cd $F/sim2real && . $F/.venv/bin/activate\npython3 kit/portao_sim2sim.py --passo 0.001 --dds 2>/dev/null; echo \"saída: $?\""
+        },
+        {
+          "rot": "Terminal · o erro comum: ordem das juntas",
+          "icone": "terminal",
+          "conteudo": "F=${FTH:-$HOME/fth}; cd $F/sim2real && . $F/.venv/bin/activate\npython3 kit/portao_sim2sim.py --ordem sdk; echo \"saída: $?\""
+        }
+      ],
+      "saida": {
+        "selo": "real",
+        "abas": [
+          {
+            "rot": "Etapas 1 e 2 (19/10/2026)",
+            "html": "<pre>política: unitree_rl_lab velocity v0 · ordem das juntas: isaac · 0.5 m/s por 10 s\n1 Menagerie (MuJoCo, PD no MJCF)     passou · andou 4.7 m\n2 unitree_mujoco (passo 5 ms)        passou · andou 4.8 m\n                                     aviso: braços no limite de torque em 99% do tempo\nPORTÃO: passou (2 de 2 etapas)\nsaída: 0</pre><p>Passou, com o aviso dos braços no passo de 5 ms.</p>"
+          },
+          {
+            "rot": "Com DDS (19/10/2026)",
+            "html": "<pre>política: unitree_rl_lab velocity v0 · ordem das juntas: isaac · 0.5 m/s por 10 s\n1 Menagerie (MuJoCo, PD no MJCF)     passou · andou 4.7 m\n2 unitree_mujoco (passo 1 ms)        passou · andou 4.7 m\n3 unitree_mujoco + DDS (tempo real)  passou · andou 5.3 m · política a 50 Hz\nPORTÃO: passou (3 de 3 etapas)\nsaída: 0</pre><p>A etapa 3 roda em tempo real: a distância e o aviso dos braços mudam um pouco de uma rodada para outra. O que vale é a última linha.</p>"
+          },
+          {
+            "rot": "Erro comum: ordem das juntas",
+            "html": "<pre>política: unitree_rl_lab velocity v0 · ordem das juntas: sdk · 0.5 m/s por 10 s\n1 Menagerie (MuJoCo, PD no MJCF)     reprovou · andou -0.1 m e caiu · caiu em t = 1.0 s; pernas/cintura no limite de torque em 3% do tempo (máx. 1 %)\n                                     aviso: braços no limite de torque em 6% do tempo\n2 unitree_mujoco (passo 5 ms)        reprovou · andou -0.3 m e caiu · caiu em t = 1.0 s; pernas/cintura no limite de torque em 6% do tempo (máx. 1 %)\n                                     aviso: braços no limite de torque em 98% do tempo\nPORTÃO: reprovou — caiu em t = 1.0 s\nsaída: 1</pre><p>Com <code>--ordem sdk</code>, o kit usa a pose padrão e as ações como se já estivessem na ordem do robô. O G1 cai em 1 s nos dois modelos. Se a sua política cai assim que começa, confira o mapa antes de qualquer outra coisa.</p>"
+          }
+        ]
+      }
+    },
+    {
+      "tipo": "pratica",
+      "titulo": "Prática",
+      "sub": "Nada vai ao robô sem passar aqui.",
+      "exercicios": [
+        {
+          "id": "e1",
+          "titulo": "E1 · Caminho do fabricante pronto",
+          "min": "10 min",
+          "texto": "Rode a preparação do DDS, do SDK e do unitree_mujoco.",
+          "pronto": "o bloco termina em <code>cyclonedds 0.10.2 · unitree_sdk2py ok</code>."
+        },
+        {
+          "id": "e2",
+          "titulo": "E2 · Portão com DDS",
+          "min": "3 min",
+          "texto": "Rode as três etapas com passo de 1 ms.",
+          "pronto": "<code>python3 kit/portao_sim2sim.py --passo 0.001 --dds; echo \"saída: $?\"</code> → <code>PORTÃO: passou (3 de 3 etapas)</code> e <code>saída: 0</code>."
+        },
+        {
+          "id": "e3",
+          "titulo": "E3 · O portão pega o erro",
+          "min": "3 min",
+          "texto": "Rode com a ordem das juntas errada e anote em que etapa e em quanto tempo ele reprova.",
+          "pronto": "<code>python3 kit/portao_sim2sim.py --ordem sdk; echo \"saída: $?\"</code> → <code>PORTÃO: reprovou — caiu em t = 1.0 s</code> e <code>saída: 1</code>."
+        }
+      ]
+    },
+    {
+      "tipo": "quiz",
+      "titulo": "Teste da aula",
+      "sub": "A explicação aparece depois da sua resposta.",
+      "perguntas": [
+        {
+          "p": "Por que a etapa 3 roda o robô num processo separado e conversa por DDS?",
+          "opcoes": [
+            "Porque o MuJoCo não roda duas vezes no mesmo processo.",
+            "Para a política ficar mais rápida que no robô real.",
+            "Para testar o mesmo caminho de mensagens que o robô usa.",
+            "Porque o DDS corrige a ordem das juntas sozinho."
+          ],
+          "certa": 2,
+          "explica": "No robô, a política lê rt/lowstate e manda rt/lowcmd pela rede. Passar por esse caminho em simulação acha erros de tópico, de taxa e de tempo real antes do hardware.",
+          "ref": "diagrama",
+          "cert": true
+        },
+        {
+          "p": "A política cai em 1 s nos dois modelos, logo no começo. Qual a primeira suspeita?",
+          "opcoes": [
+            "A ordem das juntas entre o treino e o robô.",
+            "O atrito do pé no modelo do unitree_mujoco.",
+            "A versão do CycloneDDS.",
+            "O passo de 5 ms do simulador."
+          ],
+          "certa": 0,
+          "explica": "Queda imediata em qualquer simulador quase sempre é mapeamento: juntas, sinais ou escalas trocados. Atrito e passo mudam detalhes, não derrubam em 1 s.",
+          "ref": "codigo"
+        },
+        {
+          "p": "Na etapa 2 com passo de 5 ms, os braços ficam no limite de torque, mas a marcha passa. O que fazer?",
+          "opcoes": [
+            "Retreinar a política com mais randomização nos braços.",
+            "Reprovar a política e voltar ao treino.",
+            "Desligar os braços no robô real.",
+            "Reduzir o passo do simulador e ver se o aviso some."
+          ],
+          "certa": 3,
+          "explica": "Com 1–2 ms o aviso some: era o PD do punho oscilando no integrador de Euler, um efeito do simulador. Descartar a causa do simulador vem antes de mexer no treino.",
+          "ref": "passos"
+        },
+        {
+          "p": "Por que a interface lo precisou de um par fixo em 127.0.0.1?",
+          "opcoes": [
+            "Porque o DDS da Unitree só funciona com IP fixo no robô.",
+            "Porque lo não faz multicast e os processos não se achavam.",
+            "Porque o domínio 1 é reservado ao robô real.",
+            "Porque o unitree_mujoco não publica rt/lowstate."
+          ],
+          "certa": 1,
+          "explica": "A descoberta do DDS usa multicast por padrão. Sem ele, cada processo precisa saber onde o outro está.",
+          "ref": "passos"
+        }
+      ]
+    },
+    {
+      "tipo": "resumo",
+      "titulo": "Em três frases",
+      "itens": [
+        {
+          "t": "Portão",
+          "texto": "Menagerie, unitree_mujoco e DDS em tempo real: três etapas, mesmos critérios."
+        },
+        {
+          "t": "Erro nº 1",
+          "texto": "Ordem das juntas errada derruba em 1 s; confira o joint_ids_map."
+        },
+        {
+          "t": "Aviso",
+          "texto": "Separe o que é do simulador (passo, integrador) do que é da política."
+        }
+      ]
+    },
+    {
+      "tipo": "links",
+      "titulo": "Para ir além",
+      "links": [
+        {
+          "t": "unitree_mujoco: o simulador e a ponte DDS da Unitree",
+          "href": "https://github.com/unitreerobotics/unitree_mujoco",
+          "icone": "git"
+        },
+        {
+          "t": "unitree_sdk2_python: rt/lowcmd e rt/lowstate em Python",
+          "href": "https://github.com/unitreerobotics/unitree_sdk2_python",
+          "icone": "git"
+        },
+        {
+          "t": "Berkeley Humanoid Lite: treino em Isaac Lab, sim2sim e deploy abertos",
+          "href": "https://github.com/HybridRobotics/Berkeley-Humanoid-Lite",
+          "icone": "git"
+        },
+        {
+          "t": "arXiv 2608.01600: G1 em ações de construção, avaliadas em dois motores antes do robô",
+          "href": "https://arxiv.org/abs/2608.01600",
+          "icone": "arquivo"
+        }
+      ]
+    }
+  ]
+}

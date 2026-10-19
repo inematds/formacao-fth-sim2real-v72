@@ -1,0 +1,4 @@
+política: unitree_rl_lab G1 29 GDL velocity v0 (ONNX, 480 entradas) · comando 0.50 m/s · 10 s
+sim                          queda: não · andou 5.1 m em 10 s (vel. 0.51 m/s; pedida 0.50)
+real simulado                queda: não · andou 4.5 m em 10 s (vel. 0.45 m/s; pedida 0.50)
+saída: 0

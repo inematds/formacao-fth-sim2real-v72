@@ -1,0 +1,21 @@
+# escada.yaml — a escada de implantação da sua política (FTH 2, aula 8)
+# Cada degrau: o que roda, o critério para subir (comando → saída esperada) e quando parar e voltar.
+politica: unitree_rl_lab G1 29 GDL velocity v0 (ONNX)
+robo: Unitree G1 EDU (29 GDL)
+degraus:
+  - nome: sim
+    onde: MuJoCo 3.16 + G1 do Menagerie, com as faixas de randomização do treino
+    criterio: "python3 kit/randomizar.py --seeds 20 --faixa treino → sobreviveu: 20/20"
+    parar_se: qualquer queda dentro da faixa do treino
+  - nome: sim2sim
+    onde: outro MJCF (unitree_mujoco) e o caminho de mensagens do robô (DDS, rt/lowcmd e rt/lowstate)
+    criterio: "python3 kit/portao_sim2sim.py --passo 0.001 --dds → PORTÃO: passou (3 de 3 etapas)"
+    parar_se: queda, velocidade fora de ±0,15 m/s, pernas no limite de torque ou política abaixo de 45 Hz
+  - nome: suspenso
+    onde: robô no pórtico, pés fora do chão, elástico ou cabo de segurança
+    criterio: "ensaio de bancada + sysid → kp identificado e atraso medido; a política mexe as pernas sem bater no limite"
+    parar_se: junta batendo no limite, vibração, temperatura subindo, atraso maior que o simulado
+  - nome: chão
+    onde: piso plano, área isolada, cabo frouxo no pórtico, pessoa no botão de parada
+    criterio: "teste no chão → 10 s parado + 10 s a 0,3 m/s sem queda, três vezes seguidas"
+    parar_se: tropeço, queda, qualquer pessoa dentro da área

@@ -1,0 +1,7 @@
+{
+  "nome": "treino",
+  "descricao": "as faixas que a própria tarefa Unitree-G1-29dof-Velocity randomiza no treino (unitree_rl_lab 4960b84, velocity_env_cfg.py, classe EventCfg)",
+  "atrito": [0.3, 1.0],
+  "massa": [-1.0, 3.0],
+  "empurrao_vel": [-0.5, 0.5]
+}

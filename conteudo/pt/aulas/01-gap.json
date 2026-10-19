@@ -1,0 +1,315 @@
+{
+  "slug": "gap",
+  "num": 1,
+  "menu": "O gap",
+  "titulo": "Onde o simulador mente num humanoide",
+  "titulo_curto": "O gap sim × real",
+  "minutos": 16,
+  "lead": "Uma política que anda no simulador e cai no robô: é o problema do curso inteiro. Nesta aula você monta a bancada, roda uma política de marcha pronta do Unitree G1 em dois mundos, o \"sim\" e um \"real simulado\" com parâmetros escondidos, e descobre que nenhuma diferença sozinha a derruba: a soma delas, sim.",
+  "objetivo": "medir o gap rodando a mesma política em \"sim\" e \"real simulado\" e achar que nenhum parâmetro sozinho a derruba.",
+  "competencias": [
+    "nomear-fontes-do-gap",
+    "rodar-politica-onnx-no-mujoco",
+    "isolar-um-parametro-por-vez"
+  ],
+  "aprende": [
+    {
+      "icone": "camadas",
+      "t": "As cinco fontes do gap num humanoide: atuador, atraso, atrito, massa e contato"
+    },
+    {
+      "icone": "robo",
+      "t": "A política de marcha pronta do G1 (unitree_rl_lab) rodando no MuJoCo"
+    },
+    {
+      "icone": "grafico",
+      "t": "Sim × \"real simulado\": 4,7 m andados contra queda em 2,3 s"
+    },
+    {
+      "icone": "lupa",
+      "t": "Trocar um parâmetro por vez para achar o culpado"
+    }
+  ],
+  "hero_alt": "Robô humanoide no meio de um passo sobre um piso de laboratório liso, com o pé escorregando e um cabo de segurança preso ao pórtico.",
+  "secoes": [
+    {
+      "tipo": "diagrama",
+      "titulo": "O que o simulador simplifica",
+      "sub": "Clique em cada bloco. São as cinco fontes de gap que este curso mede.",
+      "nos": [
+        {
+          "icone": "chip",
+          "titulo": "Atuador",
+          "sub": "kp, torque",
+          "detalhe": "No simulador, o motor entrega exatamente o torque do PD: kp × erro − kd × velocidade. No robô, a transmissão, o aquecimento e o firmware mudam o ganho efetivo e o torque máximo. Aula 3 (identificar) e aula 4 (limite).",
+          "itens": [
+            {
+              "icone": "lista",
+              "t": "kp efetivo ≠ kp mandado"
+            }
+          ]
+        },
+        {
+          "icone": "relogio",
+          "titulo": "Atraso",
+          "sub": "rede, laço",
+          "detalhe": "A política decide a 50 Hz; o comando viaja pela rede e o PD do motor roda a 500 Hz–1 kHz. Cada milissegundo entre o estado lido e o torque aplicado conta. Aula 4.",
+          "itens": [
+            {
+              "icone": "lista",
+              "t": "alvo chega N ms depois"
+            }
+          ]
+        },
+        {
+          "icone": "camadas",
+          "titulo": "Atrito",
+          "sub": "pé × piso",
+          "detalhe": "O coeficiente de atrito do pé com o chão muda com o piso, a sola e a poeira. Abaixo de um certo valor, o pé escorrega no apoio. Aula 2.",
+          "itens": [
+            {
+              "icone": "lista",
+              "t": "piso liso, sola gasta"
+            }
+          ]
+        },
+        {
+          "icone": "alvo",
+          "titulo": "Massa",
+          "sub": "carga, bateria",
+          "detalhe": "Bateria trocada, câmera a mais, cabo: a massa e o centro de massa reais diferem do arquivo. Aula 2.",
+          "itens": [
+            {
+              "icone": "lista",
+              "t": "+3 kg no tronco"
+            }
+          ]
+        },
+        {
+          "icone": "x",
+          "titulo": "Contato",
+          "sub": "impacto",
+          "forte": true,
+          "detalhe": "O contato do pé com o chão é a parte mais simplificada de qualquer motor de física: rigidez, amortecimento e deslizamento são aproximações. É por isso que se valida em mais de um motor (aula 6).",
+          "itens": [
+            {
+              "icone": "lista",
+              "t": "cada motor de física aproxima diferente"
+            }
+          ]
+        }
+      ],
+      "legenda": "Nenhuma dessas diferenças some. O sim-to-real é deixar a política robusta a elas, medir as que dá para medir e testar antes do chão."
+    },
+    {
+      "tipo": "passos",
+      "titulo": "A política e os dois mundos",
+      "sub": "O que roda nas práticas deste curso. Clique em cada etapa.",
+      "passos": [
+        {
+          "titulo": "A política",
+          "sub": "pronta e aberta",
+          "texto": [
+            "A Unitree publica no unitree_rl_lab uma política de marcha do G1 29 GDL já treinada no Isaac Lab e exportada em ONNX, com o arquivo de implantação <code>deploy.yaml</code> (ordem das juntas, kp e kd, pose padrão, escalas). Licença Apache-2.0.",
+            "Ela recebe 480 números (5 instantes de velocidade angular, gravidade projetada, comando, juntas e última ação) e devolve 29 alvos de posição a 50 Hz."
+          ]
+        },
+        {
+          "titulo": "O sim",
+          "sub": "o arquivo",
+          "texto": [
+            "O G1 do MuJoCo Menagerie (o mesmo do curso 0) com o PD da política dentro do MuJoCo: atuador de posição com o kp e o kd do <code>deploy.yaml</code>.",
+            "Rodar no MuJoCo uma política treinada no Isaac Lab já é cruzar de um motor de física para outro."
+          ]
+        },
+        {
+          "titulo": "O \"real simulado\"",
+          "sub": "dito como tal",
+          "texto": [
+            "Você não tem um G1. O \"robô real\" do curso é o mesmo MuJoCo com quatro parâmetros escondidos em <code>kit/mundos/real.json</code>. Não abra o arquivo antes da aula 3: lá você descobre um deles por identificação de sistema.",
+            "É um ensaio, não o robô: o que ele ensina é o método, não o número."
+          ]
+        },
+        {
+          "titulo": "Um por vez",
+          "sub": "achar o culpado",
+          "texto": [
+            "<code>--so kp</code> faz o \"real\" diferir só no kp. Rodando cada parâmetro sozinho, você vê que nenhum derruba a política, mas o kp sozinho já a faz andar 50 % mais rápido do que o pedido.",
+            "Gap raramente é uma causa só: é a soma de pequenas diferenças."
+          ]
+        }
+      ]
+    },
+    {
+      "tipo": "codigo",
+      "titulo": "Montar a bancada (reaproveita a do curso 0)",
+      "sub": "Se você fez o curso 0, o venv e o Menagerie já estão em ~/fth: o bloco só acrescenta o onnxruntime, o G1 no sparse-checkout e a pasta da política do unitree_rl_lab, fixada no commit testado.",
+      "blocos": [
+        {
+          "rot": "Terminal · preparar ~/fth",
+          "icone": "terminal",
+          "conteudo": "F=${FTH:-$HOME/fth}; mkdir -p $F && cd $F\n[ -d .venv ] || python3.12 -m venv .venv\n. .venv/bin/activate && pip install -q mujoco==3.16.0 numpy onnxruntime==1.31.0 pyyaml\n[ -d sim2real ] || git clone -q --depth 1 https://github.com/inematds/formacao-fth-sim2real-v72 sim2real\n[ -d mujoco_menagerie ] || git clone -q --filter=blob:none --sparse https://github.com/google-deepmind/mujoco_menagerie\ngit -C mujoco_menagerie sparse-checkout add unitree_g1 && git -C mujoco_menagerie checkout -q 62ab00f\n[ -d unitree_rl_lab ] || git clone -q --filter=blob:none --sparse https://github.com/unitreerobotics/unitree_rl_lab\ngit -C unitree_rl_lab sparse-checkout set deploy/robots/g1_29dof/config/policy/velocity\ngit -C unitree_rl_lab checkout -q 4960b84 && git -C unitree_rl_lab log -1 --format='unitree_rl_lab %h (%ad)' --date=short\npython3 -c \"import mujoco, onnxruntime; print('mujoco', mujoco.__version__, '· onnxruntime', onnxruntime.__version__)\""
+        }
+      ],
+      "saida": {
+        "selo": "real",
+        "abas": [
+          {
+            "rot": "Saída capturada (19/10/2026)",
+            "html": "<pre>unitree_rl_lab 4960b84 (2025-11-19)\nmujoco 3.16.0 · onnxruntime 1.31.0</pre><p>Duas linhas e nenhum erro. A política vem do commit 4960b84 do unitree_rl_lab: fixe-o, porque um <code>policy.onnx</code> novo pode ter outra ordem de entradas.</p>"
+          },
+          {
+            "rot": "Erro comum: sem a política",
+            "html": "<pre>ERRO: não achei /tmp/sem-bancada/unitree_rl_lab/deploy/robots/g1_29dof/config/policy/velocity/v0/exported/policy.onnx. Rode a preparação da aula 1 (unitree_rl_lab no sparse-checkout).\nsaída: 1</pre><p>Os scripts procuram tudo em ~/fth (ou na pasta da variável <code>FTH</code>). Se a preparação não rodou, o erro diz o caminho que faltou.</p>"
+          }
+        ]
+      }
+    },
+    {
+      "tipo": "codigo",
+      "titulo": "A mesma política nos dois mundos",
+      "sub": "O dois_mundos.py roda 10 s andando a 0,5 m/s em cada mundo. Queda = pelve abaixo de 0,5 m. Sai 1 se algum mundo caiu.",
+      "blocos": [
+        {
+          "rot": "Terminal · sim × real simulado",
+          "icone": "terminal",
+          "conteudo": "F=${FTH:-$HOME/fth}; cd $F/sim2real && . $F/.venv/bin/activate\npython3 kit/dois_mundos.py; echo \"saída: $?\""
+        },
+        {
+          "rot": "Terminal · um parâmetro por vez",
+          "icone": "terminal",
+          "conteudo": "F=${FTH:-$HOME/fth}; cd $F/sim2real && . $F/.venv/bin/activate\nfor p in atrito massa kp atraso_ms; do python3 kit/dois_mundos.py --so $p | tail -1; done"
+        }
+      ],
+      "saida": {
+        "selo": "real",
+        "abas": [
+          {
+            "rot": "Saída capturada (19/10/2026)",
+            "html": "<pre>política: unitree_rl_lab G1 29 GDL velocity v0 (ONNX, 480 entradas) · comando 0.50 m/s · 10 s\nsim                          queda: não · andou 4.7 m em 10 s (vel. 0.47 m/s; pedida 0.50)\nreal simulado                queda: sim em t = 2.3 s (andou 1.9 m)\nsaída: 1</pre><p>No sim, 4,7 m em 10 s (0,47 m/s para 0,50 pedidos). No \"real simulado\", queda aos 2,3 s.</p>"
+          },
+          {
+            "rot": "Um por vez",
+            "html": "<pre>real simulado (só atrito)    queda: não · andou 4.7 m em 10 s (vel. 0.47 m/s; pedida 0.50)\nreal simulado (só massa)     queda: não · andou 4.6 m em 10 s (vel. 0.46 m/s; pedida 0.50)\nreal simulado (só kp)        queda: não · andou 7.5 m em 10 s (vel. 0.75 m/s; pedida 0.50)\nreal simulado (só atraso_ms) queda: não · andou 4.6 m em 10 s (vel. 0.46 m/s; pedida 0.50)</pre><p>Nenhum sozinho derruba. O kp sozinho faz o robô andar a 0,75 m/s: o PD mais mole deixa as pernas atrasarem, e a política compensa empurrando mais.</p>"
+          }
+        ]
+      }
+    },
+    {
+      "tipo": "pratica",
+      "titulo": "Prática",
+      "sub": "Medir o gap antes de tentar fechá-lo.",
+      "exercicios": [
+        {
+          "id": "e1",
+          "titulo": "E1 · Bancada pronta",
+          "min": "10 min",
+          "texto": "Rode o bloco de preparação. Se o curso 0 já montou ~/fth, ele só acrescenta o que falta.",
+          "pronto": "o bloco termina em <code>unitree_rl_lab 4960b84 (2025-11-19)</code> e <code>mujoco 3.16.0 · onnxruntime 1.31.0</code>."
+        },
+        {
+          "id": "e2",
+          "titulo": "E2 · O gap medido",
+          "min": "3 min",
+          "texto": "Rode a mesma política nos dois mundos e anote quanto ela andou em cada um.",
+          "pronto": "<code>python3 kit/dois_mundos.py; echo \"saída: $?\"</code> → <code>real simulado … queda: sim em t = 2.3 s</code> e <code>saída: 1</code>."
+        },
+        {
+          "id": "e3",
+          "titulo": "E3 · Ache o culpado",
+          "min": "5 min",
+          "texto": "Rode o laço \"um parâmetro por vez\" e escreva qual parâmetro sozinho mais muda o comportamento e o que muda.",
+          "pronto": "as 4 linhas terminam em <code>queda: não</code> e a do kp mostra <code>vel. 0.75 m/s; pedida 0.50</code>; você escreveu \"nenhum derruba sozinho; o kp muda a velocidade\"."
+        }
+      ]
+    },
+    {
+      "tipo": "quiz",
+      "titulo": "Teste da aula",
+      "sub": "A explicação aparece depois da sua resposta.",
+      "perguntas": [
+        {
+          "p": "Cada parâmetro do \"real simulado\", sozinho, não derruba a política; os quatro juntos derrubam. O que isso ensina?",
+          "opcoes": [
+            "Que o gap costuma ser a soma de várias diferenças pequenas.",
+            "Que o simulador errou o cálculo da queda no mundo real.",
+            "Que a política só funciona com kp exatamente igual ao do arquivo.",
+            "Que o atrito é sempre a causa principal de uma queda."
+          ],
+          "certa": 0,
+          "explica": "Cada diferença tira um pouco de margem. Juntas, passam do que a política aguenta. Por isso se mede uma por vez e se testa a combinação.",
+          "ref": "codigo",
+          "cert": true
+        },
+        {
+          "p": "Rodar no MuJoCo uma política treinada no Isaac Lab já é:",
+          "opcoes": [
+            "Um erro, porque a política só vale no simulador do treino.",
+            "Treinar a política de novo, agora no MuJoCo.",
+            "Um sim2sim: atravessar de um motor de física para outro.",
+            "O mesmo que rodar no robô, porque os dois usam o mesmo URDF."
+          ],
+          "certa": 2,
+          "explica": "Motores diferentes aproximam o contato e o atuador de jeitos diferentes. Andar nos dois é um primeiro sinal de robustez; é o portão da aula 6.",
+          "ref": "passos"
+        },
+        {
+          "p": "Só com o kp mais baixo, o robô anda a 0,75 m/s quando o pedido é 0,50. Por quê?",
+          "opcoes": [
+            "O kp mais baixo aumenta o torque máximo de cada motor.",
+            "O PD mais mole atrasa as pernas e a política compensa empurrando mais.",
+            "O comando de velocidade é multiplicado pelo kp antes de chegar à política.",
+            "O MuJoCo reduz o atrito do pé quando o kp diminui."
+          ],
+          "certa": 1,
+          "explica": "A política é um laço fechado: se as juntas não chegam ao alvo, ela pede mais. O resultado é andar errado sem cair, um gap que só aparece medindo a velocidade.",
+          "ref": "codigo"
+        }
+      ]
+    },
+    {
+      "tipo": "resumo",
+      "titulo": "Em três frases",
+      "itens": [
+        {
+          "t": "Fontes",
+          "texto": "Atuador, atraso, atrito, massa e contato separam o simulador do robô."
+        },
+        {
+          "t": "Medida",
+          "texto": "A mesma política anda 4,7 m no sim e cai aos 2,3 s no \"real simulado\"."
+        },
+        {
+          "t": "Método",
+          "texto": "Um parâmetro por vez acha o culpado; a soma é que derruba."
+        }
+      ]
+    },
+    {
+      "tipo": "links",
+      "titulo": "Para ir além",
+      "links": [
+        {
+          "t": "unitree_rl_lab: a política e o deploy.yaml do G1",
+          "href": "https://github.com/unitreerobotics/unitree_rl_lab",
+          "icone": "git"
+        },
+        {
+          "t": "vla-v72, aula 6: avaliar em simulação e o conceito de reality gap",
+          "href": "https://inematds.github.io/vla-v72/aulas/simulacao/",
+          "icone": "seta"
+        },
+        {
+          "t": "Curso anterior da FTH: ensinar a andar por RL",
+          "href": "https://inematds.github.io/formacao-fth-locomocao-v72/",
+          "icone": "robo"
+        },
+        {
+          "t": "MuJoCo Menagerie: o G1 29 GDL",
+          "href": "https://github.com/google-deepmind/mujoco_menagerie/tree/main/unitree_g1",
+          "icone": "git"
+        }
+      ]
+    }
+  ]
+}

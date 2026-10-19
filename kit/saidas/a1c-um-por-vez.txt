@@ -1,0 +1,4 @@
+real simulado (só atrito)    queda: não · andou 4.7 m em 10 s (vel. 0.47 m/s; pedida 0.50)
+real simulado (só massa)     queda: não · andou 4.6 m em 10 s (vel. 0.46 m/s; pedida 0.50)
+real simulado (só kp)        queda: não · andou 7.5 m em 10 s (vel. 0.75 m/s; pedida 0.50)
+real simulado (só atraso_ms) queda: não · andou 4.6 m em 10 s (vel. 0.46 m/s; pedida 0.50)

@@ -1,0 +1,5 @@
+gravado: ~/fth/log-sim.npz
+erro das posições na bancada, modelo nominal:       0.11° (RMS)
+erro das posições na bancada, modelo identificado:  0.11° (RMS)
+kp         nominal   1.00 → identificado   1.00
+kd         nominal   1.00 → identificado   1.00

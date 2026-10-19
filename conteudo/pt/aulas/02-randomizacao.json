@@ -1,0 +1,322 @@
+{
+  "slug": "randomizacao",
+  "num": 2,
+  "menu": "Randomização",
+  "titulo": "Domain randomization: treinar para o mundo variado",
+  "titulo_curto": "Domain randomization",
+  "minutos": 16,
+  "lead": "Se o simulador nunca acerta o mundo, treina-se a política em muitos mundos sorteados. Nesta aula você lê as faixas que a própria Unitree randomizou no treino da política, sorteia 20 mundos dentro delas e 20 fora, e mede a diferença. A política aguenta o que viu no treino e falha logo depois.",
+  "objetivo": "ler as faixas de randomização de um treino real e medir a sobrevivência da política dentro e fora delas.",
+  "competencias": [
+    "ler-eventos-de-randomizacao",
+    "medir-cobertura-da-randomizacao",
+    "decidir-o-que-randomizar"
+  ],
+  "aprende": [
+    {
+      "icone": "arquivo",
+      "t": "Onde a randomização mora num projeto real: os eventos do Isaac Lab"
+    },
+    {
+      "icone": "lista",
+      "t": "As faixas da política do G1: atrito, massa e empurrão (e o que ficou de fora)"
+    },
+    {
+      "icone": "grafico",
+      "t": "20/20 dentro da faixa, 8/20 fora dela"
+    },
+    {
+      "icone": "lupa",
+      "t": "Por que randomizar tudo no máximo também não serve"
+    }
+  ],
+  "hero_alt": "Parede de monitores num laboratório escuro, cada um com um robô humanoide simulado andando sobre um piso diferente.",
+  "secoes": [
+    {
+      "tipo": "diagrama",
+      "titulo": "Do treino randomizado ao teste fora da faixa",
+      "sub": "Clique em cada bloco.",
+      "nos": [
+        {
+          "icone": "arquivo",
+          "titulo": "Faixas",
+          "sub": "no treino",
+          "detalhe": "O treino sorteia, a cada robô simulado, parâmetros dentro de faixas: atrito, massa, empurrões, ruído. Na tarefa Unitree-G1-29dof-Velocity, isso é a classe EventCfg do velocity_env_cfg.py.",
+          "itens": [
+            {
+              "icone": "lista",
+              "t": "startup, reset, interval"
+            }
+          ]
+        },
+        {
+          "icone": "cerebro",
+          "titulo": "Política",
+          "sub": "robusta",
+          "detalhe": "Como nunca viu o mesmo mundo duas vezes, a política aprende a não depender do valor exato. O custo: treino mais longo e, às vezes, marcha mais conservadora.",
+          "itens": [
+            {
+              "icone": "lista",
+              "t": "não decora um mundo"
+            }
+          ]
+        },
+        {
+          "icone": "camadas",
+          "titulo": "Sorteio",
+          "sub": "20 mundos",
+          "forte": true,
+          "detalhe": "Para avaliar, sorteie mundos com semente fixa e conte quantos a política aguenta. Dentro da faixa do treino, a expectativa é quase tudo; fora, é onde mora o risco.",
+          "itens": [
+            {
+              "icone": "lista",
+              "t": "semente fixa: mesmo sorteio"
+            }
+          ]
+        },
+        {
+          "icone": "check",
+          "titulo": "Placar",
+          "sub": "X/20",
+          "detalhe": "Sobrevivência = 10 s andando sem a pelve descer de 0,5 m. Conta, não valor de recompensa: é o que dá para comparar entre faixas e entre políticas.",
+          "itens": [
+            {
+              "icone": "lista",
+              "t": "dentro × fora"
+            }
+          ]
+        }
+      ],
+      "legenda": "Randomização não é \"mais é melhor\": é cobrir o mundo onde o robô vai andar."
+    },
+    {
+      "tipo": "passos",
+      "titulo": "O que a Unitree randomizou (e o que não)",
+      "sub": "Lido em velocity_env_cfg.py, unitree_rl_lab 4960b84 (19/11/2025). Clique em cada item.",
+      "passos": [
+        {
+          "titulo": "Atrito",
+          "sub": "0,3 a 1,0",
+          "texto": [
+            "Evento <code>physics_material</code>, no início (startup): atrito estático e dinâmico entre 0,3 e 1,0 em todos os corpos do robô.",
+            "Na aula 1, atrito 0,3 ainda andava e 0,2 caía em 1,9 s: o chão da faixa é o chão do que a política aguenta."
+          ]
+        },
+        {
+          "titulo": "Massa",
+          "sub": "−1 a +3 kg",
+          "texto": [
+            "Evento <code>add_base_mass</code>: soma de −1 a +3 kg ao <code>torso_link</code>. Carga de verdade (bateria extra, câmera, garra) pode passar disso."
+          ]
+        },
+        {
+          "titulo": "Empurrão",
+          "sub": "±0,5 m/s",
+          "texto": [
+            "Evento <code>push_robot</code>, a cada 5 s: muda a velocidade da base em até ±0,5 m/s em x e em y. O kit aplica o equivalente como força de 0,1 s no tronco.",
+            "Também há ruído nas observações (velocidade angular, gravidade, juntas)."
+          ]
+        },
+        {
+          "titulo": "Fora",
+          "sub": "kp e atraso",
+          "texto": [
+            "Não há randomização de kp, kd nem de atraso nesta tarefa. Exatamente os dois que a aula 1 mostrou que mudam o comportamento.",
+            "Outros projetos randomizam ganhos e atraso; o que importa é saber o que o seu treino cobriu antes de ligar o robô."
+          ]
+        }
+      ]
+    },
+    {
+      "tipo": "codigo",
+      "titulo": "As duas faixas do kit",
+      "sub": "treino.json copia as faixas da Unitree; fora.json vai um pouco além e acrescenta kp e atraso.",
+      "blocos": [
+        {
+          "rot": "Arquivo · kit/mundos/treino.json",
+          "icone": "arquivo",
+          "conteudo": "{\n  \"nome\": \"treino\",\n  \"descricao\": \"as faixas que a própria tarefa Unitree-G1-29dof-Velocity randomiza no treino (unitree_rl_lab 4960b84, velocity_env_cfg.py, classe EventCfg)\",\n  \"atrito\": [0.3, 1.0],\n  \"massa\": [-1.0, 3.0],\n  \"empurrao_vel\": [-0.5, 0.5]\n}"
+        },
+        {
+          "rot": "Arquivo · kit/mundos/fora.json",
+          "icone": "arquivo",
+          "conteudo": "{\n  \"nome\": \"fora\",\n  \"descricao\": \"além do treino: atrito um pouco abaixo de 0.3, carga maior e kp e atraso, que o treino não randomizou\",\n  \"atrito\": [\n    0.2,\n    0.6\n  ],\n  \"massa\": [\n    2.0,\n    8.0\n  ],\n  \"kp\": [\n    0.6,\n    1.0\n  ],\n  \"atraso_ms\": [\n    0,\n    30\n  ],\n  \"empurrao_vel\": [\n    -0.5,\n    0.5\n  ]\n}"
+        }
+      ]
+    },
+    {
+      "tipo": "codigo",
+      "titulo": "Sortear e contar",
+      "sub": "O randomizar.py sorteia 20 mundos por faixa com semente fixa (7) e roda 10 s andando em cada um, com o empurrão em t = 3 s.",
+      "blocos": [
+        {
+          "rot": "Terminal · dentro e fora da faixa",
+          "icone": "terminal",
+          "conteudo": "F=${FTH:-$HOME/fth}; cd $F/sim2real && . $F/.venv/bin/activate\npython3 kit/randomizar.py --seeds 20"
+        },
+        {
+          "rot": "Terminal · os primeiros mundos de fora, um a um",
+          "icone": "terminal",
+          "conteudo": "F=${FTH:-$HOME/fth}; cd $F/sim2real && . $F/.venv/bin/activate\npython3 kit/randomizar.py --seeds 20 --faixa fora --detalhe | head -6"
+        }
+      ],
+      "saida": {
+        "selo": "real",
+        "abas": [
+          {
+            "rot": "Saída capturada (19/10/2026)",
+            "html": "<pre>faixa treino  sobreviveu: 20/20\nfaixa fora    sobreviveu: 8/20</pre><p>Dentro da faixa do treino, 20 de 20. Fora, 8 de 20.</p>"
+          },
+          {
+            "rot": "Erro comum: culpar um parâmetro só",
+            "html": "<pre>   1 atrito=0.45 massa=7.38 kp=0.91 atraso_ms=6 empurrão 172 N → de pé\n   2 atrito=0.20 massa=6.93 kp=0.92 atraso_ms=14 empurrão 119 N → caiu\n   3 atrito=0.30 massa=4.67 kp=0.80 atraso_ms=16 empurrão 219 N → caiu\n   4 atrito=0.45 massa=7.93 kp=0.69 atraso_ms=4 empurrão 194 N → caiu\n   5 atrito=0.21 massa=5.09 kp=0.79 atraso_ms=28 empurrão 50 N → caiu\n   6 atrito=0.40 massa=3.49 kp=0.60 atraso_ms=6 empurrão 131 N → caiu</pre><p>O mundo 1 tem a maior massa e fica de pé; o 6 tem atrito 0,40 e cai. Fora da faixa, o que derruba é a combinação (aqui, kp 0,60 com empurrão de 131 N). Olhar um mundo só e culpar um parâmetro é o erro comum: compare placares.</p>"
+          }
+        ]
+      }
+    },
+    {
+      "tipo": "pratica",
+      "titulo": "Prática",
+      "sub": "Medir o que o treino cobriu.",
+      "exercicios": [
+        {
+          "id": "e1",
+          "titulo": "E1 · Dentro × fora",
+          "min": "3 min",
+          "texto": "Rode o sorteio das duas faixas.",
+          "pronto": "<code>python3 kit/randomizar.py --seeds 20</code> → <code>faixa treino  sobreviveu: 20/20</code> e <code>faixa fora    sobreviveu: 8/20</code>."
+        },
+        {
+          "id": "e2",
+          "titulo": "E2 · Só o kp fora",
+          "min": "5 min",
+          "texto": "Escreva uma faixa igual à do treino, mas com kp entre 0,5 e 0,8 (o bloco abaixo já faz), e rode.",
+          "pronto": "<code>python3 kit/randomizar.py --seeds 20 --faixa ~/fth/so-kp.json</code> → <code>faixa so-kp   sobreviveu: 11/20</code>."
+        },
+        {
+          "id": "e3",
+          "titulo": "E3 · O que você randomizaria",
+          "min": "10 min",
+          "texto": "Para um G1 que vai andar num piso de fábrica com uma câmera de 2 kg na cabeça, escreva em três linhas o que você acrescentaria às faixas do treino e por quê.",
+          "pronto": "três linhas, cada uma com parâmetro, faixa e o motivo medido (ex.: \"kp 0,5–1,0: só kp fora deu 11/20\")."
+        }
+      ]
+    },
+    {
+      "tipo": "codigo",
+      "titulo": "A faixa do E2",
+      "sub": "Mesmas faixas do treino, mais o kp entre 0,5 e 0,8.",
+      "blocos": [
+        {
+          "rot": "Terminal · só o kp fora da faixa",
+          "icone": "terminal",
+          "conteudo": "F=${FTH:-$HOME/fth}; cd $F/sim2real && . $F/.venv/bin/activate\ncat > $F/so-kp.json <<'J'\n{\"nome\": \"so-kp\", \"atrito\": [0.3, 1.0], \"massa\": [-1.0, 3.0], \"kp\": [0.5, 0.8], \"empurrao_vel\": [-0.5, 0.5]}\nJ\npython3 kit/randomizar.py --seeds 20 --faixa $F/so-kp.json"
+        }
+      ],
+      "saida": {
+        "selo": "real",
+        "abas": [
+          {
+            "rot": "Saída capturada (19/10/2026)",
+            "html": "<pre>faixa so-kp   sobreviveu: 11/20</pre><p>Só acrescentar o kp, que o treino não variou, derruba 9 de 20.</p>"
+          }
+        ]
+      }
+    },
+    {
+      "tipo": "quiz",
+      "titulo": "Teste da aula",
+      "sub": "A explicação aparece depois da sua resposta.",
+      "perguntas": [
+        {
+          "p": "A política sobreviveu 20/20 dentro das faixas do treino e 8/20 fora. O que isso mede?",
+          "opcoes": [
+            "Que a política foi mal treinada e precisa de mais iterações.",
+            "Que o simulador é diferente a cada sorteio e não serve para avaliar.",
+            "Que o empurrão de 0,5 m/s é forte demais para qualquer humanoide.",
+            "A cobertura da randomização: ela aguenta o que viu no treino."
+          ],
+          "certa": 3,
+          "explica": "Randomização compra robustez dentro da faixa. Fora dela não há garantia; por isso se lê o que o treino cobriu antes de ir ao robô.",
+          "ref": "diagrama",
+          "cert": true
+        },
+        {
+          "p": "Nesta política, o que a tarefa do unitree_rl_lab não randomiza?",
+          "opcoes": [
+            "O atrito do pé com o chão em todos os corpos.",
+            "O kp, o kd e o atraso do atuador.",
+            "A massa somada ao tronco.",
+            "Os empurrões a cada 5 s."
+          ],
+          "certa": 1,
+          "explica": "Atrito, massa e empurrão estão na EventCfg. Ganhos e atraso não estão, e foram eles que mudaram o comportamento na aula 1.",
+          "ref": "passos"
+        },
+        {
+          "p": "Por que não randomizar tudo na faixa mais larga possível?",
+          "opcoes": [
+            "Porque a política fica conservadora e o treino mais difícil.",
+            "Porque o MuJoCo não aceita mais de quatro parâmetros variados.",
+            "Porque randomizar faz a política esquecer o comando de velocidade.",
+            "Porque o robô real não tem atrito nem atraso variáveis."
+          ],
+          "certa": 0,
+          "explica": "Faixa larga demais custa desempenho e tempo de treino. A regra é cobrir o mundo onde o robô vai trabalhar, com margem, e medir.",
+          "ref": "diagrama"
+        },
+        {
+          "p": "Por que o randomizar.py usa semente fixa (7)?",
+          "opcoes": [
+            "Para deixar o sorteio mais difícil a cada rodada.",
+            "Porque o ONNX só roda com a semente 7.",
+            "Para o mesmo sorteio dar o mesmo placar em qualquer máquina.",
+            "Para que os mundos sorteados fora da faixa caiam dentro dela."
+          ],
+          "certa": 2,
+          "explica": "Com semente fixa, 20/20 e 8/20 se repetem e dá para comparar duas políticas no mesmo conjunto de mundos.",
+          "ref": "codigo"
+        }
+      ]
+    },
+    {
+      "tipo": "resumo",
+      "titulo": "Em três frases",
+      "itens": [
+        {
+          "t": "Faixas",
+          "texto": "O treino do G1 randomiza atrito 0,3–1,0, massa −1 a +3 kg e empurrões; não randomiza kp nem atraso."
+        },
+        {
+          "t": "Placar",
+          "texto": "20/20 dentro da faixa, 8/20 fora, 11/20 com só o kp fora."
+        },
+        {
+          "t": "Regra",
+          "texto": "Leia o que o treino cobriu e meça fora dele antes do robô."
+        }
+      ]
+    },
+    {
+      "tipo": "links",
+      "titulo": "Para ir além",
+      "links": [
+        {
+          "t": "velocity_env_cfg.py do G1 (EventCfg)",
+          "href": "https://github.com/unitreerobotics/unitree_rl_lab/blob/main/source/unitree_rl_lab/unitree_rl_lab/tasks/locomotion/robots/g1/29dof/velocity_env_cfg.py",
+          "icone": "git"
+        },
+        {
+          "t": "mjlab: a mesma API de eventos do Isaac Lab sobre MuJoCo Warp (GPU)",
+          "href": "https://github.com/mujocolab/mjlab",
+          "icone": "git"
+        },
+        {
+          "t": "Curso anterior: treinar a política de marcha",
+          "href": "https://inematds.github.io/formacao-fth-locomocao-v72/",
+          "icone": "robo"
+        }
+      ]
+    }
+  ]
+}

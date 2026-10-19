@@ -1,0 +1,268 @@
+{
+  "slug": "corrigir",
+  "num": 5,
+  "menu": "Delta action",
+  "titulo": "Corrigir com dados do robô: delta action e afins",
+  "titulo_curto": "Corrigir com dados (delta action)",
+  "minutos": 15,
+  "lead": "Às vezes o gap não cabe em dois parâmetros. A ideia do ASAP (RSS 2025) é aprender a ação que falta: um modelo que, somado ao comando dentro do simulador, faz ele repetir o que o robô real fez. Nesta aula você ajusta uma versão mínima dessa ideia com o log da bancada e mede o erro do simulador antes e depois.",
+  "objetivo": "corrigir o simulador com dados do robô por um modelo de ação delta e medir o erro de rastreio sim × real antes e depois.",
+  "competencias": [
+    "explicar-delta-action",
+    "ajustar-modelo-de-correcao",
+    "separar-ideia-de-implementacao"
+  ],
+  "aprende": [
+    {
+      "icone": "camadas",
+      "t": "As quatro etapas do ASAP: pré-treino, coleta, modelo delta, ajuste fino"
+    },
+    {
+      "icone": "chip",
+      "t": "Um brinquedo linear da ideia: 8 coeficientes por mínimos quadrados"
+    },
+    {
+      "icone": "grafico",
+      "t": "Erro sim × real de 8,16° para 3,82°"
+    },
+    {
+      "icone": "lupa",
+      "t": "Quando usar sysid, quando usar delta action"
+    }
+  ],
+  "hero_alt": "Mãos num teclado diante de dois monitores com curvas de trajetória e um robô simulado, com um robô humanoide suspenso no pórtico ao fundo.",
+  "secoes": [
+    {
+      "tipo": "diagrama",
+      "titulo": "O ciclo do ASAP",
+      "sub": "Clique em cada bloco. As quatro etapas estão no README do LeCAR-Lab/ASAP.",
+      "volta": "repete se o gap persistir",
+      "nos": [
+        {
+          "icone": "cerebro",
+          "titulo": "Pré-treino",
+          "sub": "em sim",
+          "detalhe": "A política aprende a tarefa no simulador, como de costume (RL em massa).",
+          "itens": [
+            {
+              "icone": "lista",
+              "t": "política base"
+            }
+          ]
+        },
+        {
+          "icone": "robo",
+          "titulo": "Coleta",
+          "sub": "no robô",
+          "detalhe": "A política roda no robô real e grava estados e ações. No ASAP, o arquivo de movimento precisa da chave \"action\". Aqui, o log do pórtico da aula 3 faz esse papel.",
+          "itens": [
+            {
+              "icone": "lista",
+              "t": "estado + ação"
+            }
+          ]
+        },
+        {
+          "icone": "chip",
+          "titulo": "Delta",
+          "sub": "modelo",
+          "forte": true,
+          "detalhe": "Aprende uma ação corretiva δ(s, a) que, somada ao comando dentro do simulador, faz o sim reproduzir as trajetórias reais. No ASAP é uma rede treinada por RL.",
+          "itens": [
+            {
+              "icone": "lista",
+              "t": "sim + δ ≈ real"
+            }
+          ]
+        },
+        {
+          "icone": "play",
+          "titulo": "Ajuste fino",
+          "sub": "no sim corrigido",
+          "detalhe": "A política volta a treinar no simulador com o modelo delta ligado, que agora se comporta como o robô. Depois, de novo ao robô.",
+          "itens": [
+            {
+              "icone": "lista",
+              "t": "volta à coleta"
+            }
+          ]
+        }
+      ],
+      "legenda": "O ASAP mostrou habilidades ágeis no G1 com esse ciclo. O kit só faz as etapas 2 e 3, em pequeno."
+    },
+    {
+      "tipo": "passos",
+      "titulo": "O brinquedo do kit (e o que ele não é)",
+      "sub": "delta.py, com o log.npz da aula 3. Clique em cada etapa.",
+      "passos": [
+        {
+          "titulo": "O modelo",
+          "sub": "8 números",
+          "texto": [
+            "Por junta da perna: δ = a·(alvo − q) + b·dq, recalculado a cada 20 ms (o passo da política) e somado ao alvo dentro do simulador.",
+            "Quatro juntas, dois coeficientes cada."
+          ]
+        },
+        {
+          "titulo": "O ajuste",
+          "sub": "trajetória inteira",
+          "texto": [
+            "<code>mujoco.minimize.least_squares</code> procura os 8 números que fazem o simulador, repetindo o comando do log com a correção, chegar às posições que o robô mediu.",
+            "Comparar a trajetória inteira, e não um passo de cada vez, evita que o atraso escondido confunda o ajuste."
+          ]
+        },
+        {
+          "titulo": "O resultado",
+          "sub": "a ≈ −0,5 a −0,7",
+          "texto": [
+            "a negativo puxa o alvo para perto da posição atual: é o simulador imitando um motor mais mole e mais lento. Juntando o kp de 0,6 e o atraso de 20 ms, faz sentido."
+          ]
+        },
+        {
+          "titulo": "O que não é",
+          "sub": "honestidade",
+          "texto": [
+            "Não é o ASAP: lá o modelo delta é uma rede com o estado inteiro, treinada por RL em GPU, e a política é ajustada depois. Aqui são 8 coeficientes e nenhum retreino.",
+            "Serve para ver a ideia funcionando em CPU e em minutos."
+          ]
+        }
+      ]
+    },
+    {
+      "tipo": "codigo",
+      "titulo": "Ajustar a correção",
+      "sub": "Usa o mesmo log.npz da aula 3. Leva de 1 a 2 minutos em CPU (cada avaliação repete os 4 s do ensaio).",
+      "blocos": [
+        {
+          "rot": "Terminal · delta action (brinquedo linear)",
+          "icone": "terminal",
+          "conteudo": "F=${FTH:-$HOME/fth}; cd $F/sim2real && . $F/.venv/bin/activate\npython3 kit/delta.py $F/log.npz; echo \"saída: $?\""
+        }
+      ],
+      "saida": {
+        "selo": "real",
+        "abas": [
+          {
+            "rot": "Saída capturada (19/10/2026)",
+            "html": "<pre>log: ~/fth/log.npz · correção recalculada a cada 20 ms · δ = a·(alvo − q) + b·dq por junta\n  left_hip_pitch     a = -0.66  b = -0.013\n  left_hip_roll      a = -0.48  b = +0.006\n  left_knee          a = -0.66  b = +0.011\n  left_ankle_pitch   a = -0.71  b = +0.031\nerro de rastreio sim × real: antes 8.16° → depois 3.82° (RMS das posições)\nsaída: 0</pre><p>Antes, o simulador erra as posições da perna em 8,16° (RMS). Com a correção, 3,82°. Sai 0 quando o erro cai.</p>"
+          },
+          {
+            "rot": "Erro comum: um passo de cada vez",
+            "html": "<p>A primeira versão deste script ajustava δ trecho a trecho (20 ms), linearizando o simulador em cada trecho, e o erro piorou em vez de cair. O atraso de 20 ms faz um trecho isolado parecer um motor ainda mais mole, e a correção exagera. Ajustar contra a trajetória inteira resolveu: confira sempre o erro depois da correção, nunca só o ajuste.</p>"
+          }
+        ]
+      }
+    },
+    {
+      "tipo": "pratica",
+      "titulo": "Prática",
+      "sub": "Fazer o simulador imitar o robô.",
+      "exercicios": [
+        {
+          "id": "e1",
+          "titulo": "E1 · Erro antes e depois",
+          "min": "3 min",
+          "texto": "Rode a correção com o log da aula 3.",
+          "pronto": "<code>python3 kit/delta.py ~/fth/log.npz; echo \"saída: $?\"</code> → <code>erro de rastreio sim × real: antes 8.16° → depois 3.82°</code> e <code>saída: 0</code>."
+        },
+        {
+          "id": "e2",
+          "titulo": "E2 · Ler os coeficientes",
+          "min": "5 min",
+          "texto": "Compare os valores de a das quatro juntas com o kp identificado na aula 3 e escreva, em uma linha, por que todos saíram negativos.",
+          "pronto": "uma linha citando os quatro a (entre −0,48 e −0,71) e a palavra \"mole\" ou \"atraso\"."
+        },
+        {
+          "id": "e3",
+          "titulo": "E3 · Sysid ou delta?",
+          "min": "5 min",
+          "texto": "Para cada caso, escreva qual você usaria: (1) a bateria nova deixou o robô 2 kg mais pesado; (2) a transmissão do joelho tem folga que muda com a temperatura.",
+          "pronto": "(1) sysid/medir a massa; (2) delta action ou actuator network, com o motivo em uma frase cada."
+        }
+      ]
+    },
+    {
+      "tipo": "quiz",
+      "titulo": "Teste da aula",
+      "sub": "A explicação aparece depois da sua resposta.",
+      "perguntas": [
+        {
+          "p": "No ASAP, para que serve o modelo de delta action?",
+          "opcoes": [
+            "Para substituir a política no robô real.",
+            "Para fazer o simulador reproduzir as trajetórias do robô real.",
+            "Para medir o atraso da rede entre o computador de bordo e o robô.",
+            "Para aumentar o kp dos motores no deploy."
+          ],
+          "certa": 1,
+          "explica": "Ele corrige o simulador, não o robô. Com o sim corrigido, a política é ajustada de novo e volta ao robô.",
+          "ref": "diagrama",
+          "cert": true
+        },
+        {
+          "p": "O delta.py ajusta 8 coeficientes. O que o separa do ASAP de verdade?",
+          "opcoes": [
+            "Nada: o ASAP também usa um modelo linear por junta.",
+            "O ASAP não precisa de dados do robô real.",
+            "O ASAP usa o mesmo modelo, mas só no MuJoCo.",
+            "Lá é uma rede treinada por RL e a política é retreinada."
+          ],
+          "certa": 3,
+          "explica": "O kit mostra a ideia em pequeno e em CPU. Dizer o que ele não é faz parte do método.",
+          "ref": "passos"
+        },
+        {
+          "p": "Ajustar trecho a trecho piorou o erro; contra a trajetória inteira, melhorou. Por quê?",
+          "opcoes": [
+            "O atraso faz cada trecho isolado parecer pior do que é.",
+            "Trechos curtos têm menos ruído de encoder.",
+            "O otimizador só aceita trajetórias de 4 s.",
+            "Trecho a trecho, o kp do modelo muda sozinho a cada passo do ajuste."
+          ],
+          "certa": 0,
+          "explica": "Com 20 ms de atraso, a resposta de um trecho depende do comando do trecho anterior. Olhar o todo deixa o ajuste ver isso.",
+          "ref": "codigo"
+        }
+      ]
+    },
+    {
+      "tipo": "resumo",
+      "titulo": "Em três frases",
+      "itens": [
+        {
+          "t": "Ideia",
+          "texto": "Delta action aprende a ação que falta para o simulador imitar o robô."
+        },
+        {
+          "t": "Medida",
+          "texto": "Oito coeficientes levam o erro sim × real de 8,16° para 3,82°."
+        },
+        {
+          "t": "Escolha",
+          "texto": "Parâmetro conhecido: sysid. Efeito sem parâmetro claro: delta action."
+        }
+      ]
+    },
+    {
+      "tipo": "links",
+      "titulo": "Para ir além",
+      "links": [
+        {
+          "t": "ASAP (RSS 2025): código e instruções",
+          "href": "https://github.com/LeCAR-Lab/ASAP",
+          "icone": "git"
+        },
+        {
+          "t": "MuJoCo: módulo minimize (mínimos quadrados)",
+          "href": "https://mujoco.readthedocs.io/en/stable/python.html",
+          "icone": "arquivo"
+        },
+        {
+          "t": "vla-v72, aula 7: RL depois da imitação",
+          "href": "https://inematds.github.io/vla-v72/aulas/fronteira/",
+          "icone": "seta"
+        }
+      ]
+    }
+  ]
+}

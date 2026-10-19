@@ -1,0 +1,24 @@
+{
+  "nome": "fora",
+  "descricao": "além do treino: atrito um pouco abaixo de 0.3, carga maior e kp e atraso, que o treino não randomizou",
+  "atrito": [
+    0.2,
+    0.6
+  ],
+  "massa": [
+    2.0,
+    8.0
+  ],
+  "kp": [
+    0.6,
+    1.0
+  ],
+  "atraso_ms": [
+    0,
+    30
+  ],
+  "empurrao_vel": [
+    -0.5,
+    0.5
+  ]
+}

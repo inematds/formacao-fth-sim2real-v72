@@ -1,0 +1,5 @@
+erro das posições na bancada, modelo nominal:       8.16° (RMS)
+erro das posições na bancada, modelo identificado:  3.55° (RMS)
+kp         nominal   1.00 → identificado   0.52
+kp         escondido   0.60 · dentro de ±10 %: não
+saída: 1

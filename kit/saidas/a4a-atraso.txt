@@ -1,0 +1,5 @@
+atraso   quedas em 6 empurrões   (120/150/180 N, frente e lado, 0,2 s, t = 3 s)
+   0 ms  2/6   . . . . x x
+  20 ms  3/6   x x x . . .
+  40 ms  6/6   x x x x x x
+(x = caiu, . = ficou de pé; ordem: 120, 150, 180 N para a frente e depois para o lado)

@@ -1,0 +1,7 @@
+política: unitree_rl_lab velocity v0 · ordem das juntas: sdk · 0.5 m/s por 10 s
+1 Menagerie (MuJoCo, PD no MJCF)     reprovou · andou -0.1 m e caiu · caiu em t = 1.0 s; pernas/cintura no limite de torque em 3% do tempo (máx. 1 %)
+                                     aviso: braços no limite de torque em 6% do tempo
+2 unitree_mujoco (passo 5 ms)        reprovou · andou -0.3 m e caiu · caiu em t = 1.0 s; pernas/cintura no limite de torque em 6% do tempo (máx. 1 %)
+                                     aviso: braços no limite de torque em 98% do tempo
+PORTÃO: reprovou — caiu em t = 1.0 s
+saída: 1

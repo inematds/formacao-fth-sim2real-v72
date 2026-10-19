@@ -1,0 +1,7 @@
+imagem: ~/fth/gemeo.png
+cena: cena.json · mesa 1.2 × 0.8 m · objetos na cena: 4
+  cubo_vermelho    caixa
+  lata_azul        cilindro
+  bola_tenis       esfera
+  bandeja_cinza    recipiente
+gemeo.png: 1280×720 px, 135 KB

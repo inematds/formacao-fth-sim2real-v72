@@ -1,0 +1,6 @@
+política: unitree_rl_lab velocity v0 · ordem das juntas: isaac · 0.5 m/s por 10 s
+1 Menagerie (MuJoCo, PD no MJCF)     passou · andou 4.7 m
+2 unitree_mujoco (passo 1 ms)        passou · andou 4.7 m
+3 unitree_mujoco + DDS (tempo real)  passou · andou 5.3 m · política a 50 Hz
+PORTÃO: passou (3 de 3 etapas)
+saída: 0

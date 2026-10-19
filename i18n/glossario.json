@@ -1,0 +1,32 @@
+{
+  "en": {
+    "REGRA: tudo dentro de <pre> e de <code> é saída ou comando real do kit (em português) e fica IGUAL, sem traduzir": "RULE: everything inside <pre> and <code> is real kit output or command (in Portuguese) and stays EXACTLY as is, untranslated (e.g. queda: sim, queda: não, andou, real simulado, sobreviveu, faixa treino, faixa fora, identificado, escondido, dentro de ±10 %, atraso medido, quedas em 6 empurrões, erro de rastreio sim × real, antes, depois, PORTÃO: passou, PORTÃO: reprovou, aviso: braços no limite de torque, objetos na cena, degraus, critérios, escada ok, saída: 0)",
+    "nomes de arquivos, pastas, juntas, chaves de YAML/JSON e tópicos DDS": "never translate (file, folder, joint, YAML/JSON key and DDS topic names): kit/ s2r.py dois_mundos.py randomizar.py coletar.py sysid.py atraso.py delta.py portao_sim2sim.py robo_dds.py gemeo.py conferir_escada.py capturar.sh escada-modelo.yaml escada.yaml mundos/ sim.json real.json treino.json fora.json so-kp.json log.npz log-sim.npz gemeo.png cena.json plano.json r2s.py ~/fth sim2real mujoco_menagerie unitree_g1 unitree_rl_lab unitree_mujoco unitree_sdk2_python cyclonedds robotica-real2sim deploy.yaml policy.onnx joint_ids_map stiffness damping default_joint_pos step_dt EventCfg physics_material add_base_mass push_robot torso_link velocity_env_cfg.py rt/lowcmd rt/lowstate lo atrito massa kp kd atraso_ms empurrao_vel nome descricao degraus onde criterio parar_se politica robo sim sim2sim suspenso chão enc_ vel_ left_hip_pitch left_hip_roll left_knee left_ankle_pitch",
+    "termos técnicos que ficam em inglês": "keep in English as is: sim-to-real, real-to-sim, sim2sim, domain randomization, actuator network, whole-body control, motion tracking, retargeting, teleoperation, policy, reward, checkpoint, MJCF, URDF, DDS, ONNX, PD, IMU, kp, kd, sysid, delta action, MjSpec, TimeSeries, ModelSequences, Parameter, optimize, Gaussian splatting, 3DGS",
+    "pronto quando": "done when",
+    "\"real simulado\" (o robô real do curso, que é um MuJoCo com parâmetros escondidos)": "\"simulated real\" (the course's real robot, a MuJoCo with hidden parameters)",
+    "pórtico": "gantry",
+    "ensaio de bancada": "bench test",
+    "identificação de sistema": "system identification",
+    "atraso": "latency (delay)",
+    "escada de implantação": "deployment ladder",
+    "portão": "gate",
+    "relatado": "reported",
+    "gêmeo": "twin (digital twin)"
+  },
+  "es": {
+    "REGRA: tudo dentro de <pre> e de <code> é saída ou comando real do kit (em português) e fica IGUAL, sem traduzir": "REGLA: todo lo que está dentro de <pre> y de <code> es salida o comando real del kit (en portugués) y queda IGUAL, sin traducir (p. ex. queda: sim, queda: não, andou, real simulado, sobreviveu, faixa treino, faixa fora, identificado, escondido, dentro de ±10 %, atraso medido, quedas em 6 empurrões, erro de rastreio sim × real, antes, depois, PORTÃO: passou, PORTÃO: reprovou, aviso: braços no limite de torque, objetos na cena, degraus, critérios, escada ok, saída: 0)",
+    "nomes de arquivos, pastas, juntas, chaves de YAML/JSON e tópicos DDS": "nunca traducir (nombres de archivos, carpetas, articulaciones, claves YAML/JSON y tópicos DDS): kit/ s2r.py dois_mundos.py randomizar.py coletar.py sysid.py atraso.py delta.py portao_sim2sim.py robo_dds.py gemeo.py conferir_escada.py capturar.sh escada-modelo.yaml escada.yaml mundos/ sim.json real.json treino.json fora.json so-kp.json log.npz log-sim.npz gemeo.png cena.json plano.json r2s.py ~/fth sim2real mujoco_menagerie unitree_g1 unitree_rl_lab unitree_mujoco unitree_sdk2_python cyclonedds robotica-real2sim deploy.yaml policy.onnx joint_ids_map stiffness damping default_joint_pos step_dt EventCfg physics_material add_base_mass push_robot torso_link velocity_env_cfg.py rt/lowcmd rt/lowstate lo atrito massa kp kd atraso_ms empurrao_vel nome descricao degraus onde criterio parar_se politica robo sim sim2sim suspenso chão enc_ vel_ left_hip_pitch left_hip_roll left_knee left_ankle_pitch",
+    "termos técnicos que ficam em inglês": "mantener en inglés tal cual: sim-to-real, real-to-sim, sim2sim, domain randomization, actuator network, whole-body control, motion tracking, retargeting, teleoperation, policy, reward, checkpoint, MJCF, URDF, DDS, ONNX, PD, IMU, kp, kd, sysid, delta action, MjSpec, TimeSeries, ModelSequences, Parameter, optimize, Gaussian splatting, 3DGS",
+    "pronto quando": "listo cuando",
+    "\"real simulado\" (o robô real do curso, que é um MuJoCo com parâmetros escondidos)": "\"real simulado\" (el robot real del curso, un MuJoCo con parámetros ocultos)",
+    "pórtico": "pórtico",
+    "ensaio de bancada": "ensayo de banco",
+    "identificação de sistema": "identificación de sistemas",
+    "atraso": "retardo (latencia)",
+    "escada de implantação": "escalera de despliegue",
+    "portão": "compuerta (gate)",
+    "relatado": "reportado",
+    "gêmeo": "gemelo (gemelo digital)"
+  }
+}

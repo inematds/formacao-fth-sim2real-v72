@@ -1,0 +1,2 @@
+ERRO: não achei /tmp/sem-bancada/unitree_rl_lab/deploy/robots/g1_29dof/config/policy/velocity/v0/exported/policy.onnx. Rode a preparação da aula 1 (unitree_rl_lab no sparse-checkout).
+saída: 1

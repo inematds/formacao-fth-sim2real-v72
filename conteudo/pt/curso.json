@@ -1,0 +1,183 @@
+{
+  "id": "formacao-fth-sim2real-v72",
+  "lang": "pt-BR",
+  "url": "https://inematds.github.io/formacao-fth-sim2real-v72/",
+  "nome": "FTH 2 · Do simulador ao chão",
+  "sub": "Sim-to-real em humanoides",
+  "volta": {
+    "t": "INEMA.CLUB",
+    "href": "https://inema.club/"
+  },
+  "lado_card": {
+    "rot": "A política das práticas",
+    "t": "G1 29 GDL, pronta e aberta",
+    "texto": "A política de marcha que a Unitree publica no unitree_rl_lab (Isaac Lab, ONNX, Apache-2.0), rodada no MuJoCo 3.16. Testada em 19/10/2026 nesta pilha: Menagerie 62ab00f, unitree_rl_lab 4960b84.",
+    "link": "Abrir o unitree_rl_lab",
+    "href": "https://github.com/unitreerobotics/unitree_rl_lab"
+  },
+  "rodape": "INEMA.CLUB · conteúdo aberto e gratuito · formato INEMA Learning v7.2 · FTH — Formação Tecnológica em Humanoides, curso 2 de 5 · <a href=\"https://inema.club/\">inema.club</a> · <a href=\"https://github.com/inematds/formacao-fth-sim2real-v72\">kit do curso no GitHub</a>",
+  "videos": {
+    "real2sim": {
+      "titulo": "Gêmeo MuJoCo da mesa: o braço pega o cubo (clipe do robotica-real2sim)",
+      "duracao": "0:10",
+      "mp4": "https://github.com/inematds/formacao-fth-sim2real-v72/releases/download/videos-v1/real2sim-pegar-cubo.mp4",
+      "poster": "assets/video/real2sim-poster.jpg",
+      "vtt": "assets/video/real2sim.vtt",
+      "pagina": "https://inematds.github.io/robotica-real2sim/guia/"
+    }
+  },
+  "inicio": {
+    "kicker": "FTH — Formação Tecnológica em Humanoides · curso 2 de 5 · 8 aulas",
+    "titulo": "Do simulador ao chão: sim-to-real em humanoides",
+    "lead": "Uma política de marcha que anda no simulador e cai no robô. Em oito aulas você mede esse gap, testa a randomização, identifica o atuador, mede o atraso, corrige o simulador com dados, passa a política por um portão sim2sim com DDS e monta a escada até o chão. Tudo em CPU, sem robô.",
+    "cta": "Começar pela aula 1",
+    "cta2": {
+      "t": "Ver o kit no GitHub",
+      "href": "https://github.com/inematds/formacao-fth-sim2real-v72"
+    },
+    "capa_alt": "Robô humanoide industrial de pé no chão de um laboratório escuro, preso a um pórtico por um cabo frouxo, com um monitor de simulação ao fundo e o título Do simulador ao chão.",
+    "numeros": [
+      {
+        "v": "8",
+        "t": "aulas"
+      },
+      {
+        "v": "125",
+        "t": "minutos de aula"
+      },
+      {
+        "v": "24",
+        "t": "exercícios com \"pronto quando\""
+      },
+      {
+        "v": "3",
+        "t": "etapas no portão sim2sim (com DDS)"
+      }
+    ],
+    "aulas_titulo": "As aulas",
+    "aulas_sub": "Do gap medido à escada de implantação: randomização, identificação de sistema, atraso do atuador, correção com dados, sim2sim, real-to-sim e o plano até o chão.",
+    "blocos": [
+      {
+        "t": "Para quem é",
+        "itens": [
+          "Quem programa em Python, já viu ROS 2 (ou fez o curso robot) e quer levar uma política de humanoide para o robô.",
+          "Quem não tem humanoide: o \"robô real\" das práticas é um MuJoCo com parâmetros escondidos, dito como tal.",
+          "Quem fez o curso 0 (bancada ~/fth) e o curso 1 (locomoção por RL), ou quer começar por uma política pronta."
+        ]
+      },
+      {
+        "t": "O que você sai fazendo",
+        "itens": [
+          "Medir o gap de uma política pronta e achar quais parâmetros o derrubam.",
+          "Ler as faixas de randomização de um treino real e testar dentro e fora delas.",
+          "Identificar o kp do atuador com o toolbox mujoco.sysid e medir o atraso na bancada.",
+          "Passar a política por um portão sim2sim com outro modelo e DDS, e escrever a escada até o chão."
+        ]
+      }
+    ]
+  },
+  "ui": {
+    "pular": "Pular para o conteúdo",
+    "aulas": "Aulas",
+    "concluido": "concluído",
+    "aula": "Aula",
+    "nesta_aula": "Nesta aula, você vai aprender:",
+    "objetivo": "Objetivo:",
+    "proxima_aula": "Próxima aula",
+    "aula_anterior": "Aula anterior",
+    "voltar_inicio": "Voltar ao início do curso",
+    "marcar_concluida": "Marcar aula como concluída",
+    "dg_dica": "Clique em cada bloco do diagrama para ver o que ele faz.",
+    "copiar": "Copiar",
+    "copiado": "Copiado",
+    "selo_simulacao": "Simulação: exemplo ilustrativo",
+    "selo_real": "Exemplo do repositório",
+    "pronto_quando": "Pronto quando:",
+    "fiz": "Fiz este exercício",
+    "video_pagina": "Página do vídeo com roteiro",
+    "pergunta": "Pergunta",
+    "de": "de",
+    "cert_tag": "competência",
+    "correto": "Correto",
+    "errado": "Não é essa",
+    "quiz_aguarda": "Escolha uma alternativa. A explicação aparece depois da sua tentativa.",
+    "proxima_pergunta": "Próxima pergunta",
+    "quiz_ver": "Ver resultado",
+    "quiz_fim": "Teste concluído",
+    "quiz_total": "Você acertou {a} de {n}. Acertando todas, a aula é marcada como concluída.",
+    "aparencia": "Aparência",
+    "tamanho_texto": "Tamanho do texto",
+    "tema": "Tema",
+    "tema_escuro": "Escuro",
+    "tema_papel": "Papel claro",
+    "role_dica": "Role a página: cada etapa abaixo acende a sua parte do diagrama.",
+    "pre_requisito": "requer",
+    "ver_aula": "Ver a aula",
+    "mapa_dica": "Clique num exercício para ver o que fazer e o \"pronto quando\".",
+    "etapas": "Etapas",
+    "exercicios": "exercícios",
+    "rever": "Rever:",
+    "revisar_erradas": "Revisar as erradas",
+    "refazer": "Refazer o teste",
+    "h_semana": "h por semana",
+    "data_inicio": "Data de início",
+    "ritmo": "Tempo disponível",
+    "gerar_plano": "Gerar meu plano",
+    "baixar_md": "Baixar plano.md",
+    "baixar_ics": "Baixar para o calendário (.ics)",
+    "ind_estudo": "Estudo (aulas)",
+    "ind_pratica": "Prática declarada",
+    "ind_nota": "Prática = exercícios que você marcou como feitos. A comprovação vem na prova da certificação.",
+    "estudo": {
+      "titulo": "Seu estudo",
+      "continuar": "Continuar de onde parei",
+      "comecar": "Começar pela aula 1",
+      "cta_continuar": "Continuar a aula {n}",
+      "hoje": "hoje",
+      "ontem": "ontem",
+      "ha_dias": "há {n} dias",
+      "desempenho": "Desempenho nos testes",
+      "notas": "Minhas anotações",
+      "dados": "Copiar meus dados",
+      "sem_testes": "Nenhum teste feito ainda. O teste fica no fim de cada aula.",
+      "nao_fez": "teste ainda não feito",
+      "ultimo": "Último",
+      "melhor": "Melhor",
+      "tentativas": "tentativas",
+      "tentativa": "tentativa",
+      "tudo_certo": "Acertou tudo no último teste.",
+      "rever": "Para rever",
+      "resposta": "Resposta certa:",
+      "ir_teste": "Refazer o teste",
+      "sem_notas": "Nenhuma anotação ainda. Na aula, selecione um trecho do texto e toque em Marcar ou Anotar.",
+      "so_marcado": "(só marcado)",
+      "marcar": "Marcar",
+      "anotar": "Anotar",
+      "salvar": "Salvar",
+      "apagar": "Apagar marca",
+      "fechar": "Fechar",
+      "nota_ph": "Escreva sua anotação sobre este trecho…",
+      "um_bloco": "Marque dentro de um parágrafo só.",
+      "nao_marca": "Este trecho não pode ser marcado.",
+      "dados_exp": "Seu progresso, suas anotações e as notas dos testes ficam só neste navegador. Baixe uma cópia (.json) para guardar ou para continuar em outro computador ou navegador; lá, carregue a cópia. Carregar soma com o que já existe e não apaga nada.",
+      "exportar": "Baixar cópia",
+      "importar": "Carregar cópia",
+      "import_ok": "Cópia carregada ({n} itens). Atualizando a página…",
+      "import_erro": "Arquivo não reconhecido. Nada foi alterado.",
+      "import_outro": "Esta cópia é de outro curso. Nada foi alterado.",
+      "export_ok": "Cópia baixada."
+    },
+    "conv_dica": "Escolha a sua resposta. O comentário aparece logo depois e a conversa segue conforme a escolha.",
+    "conv_voce": "Você",
+    "conv_escolha": "Sua resposta",
+    "conv_boa": "Boa escolha",
+    "conv_meio": "Dá para melhorar",
+    "conv_ruim": "Escolha fraca",
+    "conv_fim": "Fim da conversa",
+    "conv_placar": "Você fez {p} de {m} pontos possíveis.",
+    "conv_licao": "Lição:",
+    "conv_recomecar": "Recomeçar a conversa",
+    "conv_feita": "Seu melhor placar: {p} de {m} pontos."
+  },
+  "icone": "robo"
+}

@@ -1,0 +1,6 @@
+   1 atrito=0.45 massa=7.38 kp=0.91 atraso_ms=6 empurrão 172 N → de pé
+   2 atrito=0.20 massa=6.93 kp=0.92 atraso_ms=14 empurrão 119 N → caiu
+   3 atrito=0.30 massa=4.67 kp=0.80 atraso_ms=16 empurrão 219 N → caiu
+   4 atrito=0.45 massa=7.93 kp=0.69 atraso_ms=4 empurrão 194 N → caiu
+   5 atrito=0.21 massa=5.09 kp=0.79 atraso_ms=28 empurrão 50 N → caiu
+   6 atrito=0.40 massa=3.49 kp=0.60 atraso_ms=6 empurrão 131 N → caiu

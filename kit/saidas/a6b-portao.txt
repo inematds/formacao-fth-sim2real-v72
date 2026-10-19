@@ -1,0 +1,6 @@
+política: unitree_rl_lab velocity v0 · ordem das juntas: isaac · 0.5 m/s por 10 s
+1 Menagerie (MuJoCo, PD no MJCF)     passou · andou 4.7 m
+2 unitree_mujoco (passo 5 ms)        passou · andou 4.8 m
+                                     aviso: braços no limite de torque em 99% do tempo
+PORTÃO: passou (2 de 2 etapas)
+saída: 0

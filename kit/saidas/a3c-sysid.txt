@@ -1,0 +1,10 @@
+log: ~/fth/log.npz · 1999 amostras · sinais: 8 (posição e velocidade de 4 juntas)
+resíduo, modelo nominal:       0.034
+resíduo, modelo identificado:  0.014
+erro das posições na bancada, modelo nominal:       8.16° (RMS)
+erro das posições na bancada, modelo identificado:  3.14° (RMS)
+kp         nominal   1.00 → identificado   0.57
+kd         nominal   1.00 → identificado   1.08
+kp         escondido   0.60 · dentro de ±10 %: sim
+kd         escondido   1.00 · dentro de ±10 %: sim
+saída: 0
